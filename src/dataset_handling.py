@@ -34,7 +34,7 @@ class RealDataset(Dataset):
 
         # initialize parameters
         self.n_samples: int = xy.shape[0]
-        self.p: int = xy.shape[1]
+        self.data_dim: int = xy.shape[1]
         self.seq_len: int = seq_len
         self.n_seq: int = int(self.n_samples / seq_len)
         self.transform: Optional[Callable] = transform
@@ -42,20 +42,16 @@ class RealDataset(Dataset):
         # transform data
         scaler = MinMaxScaler(feature_range=(0,1)) # preserves the data distribution
         scaler.fit(xy)
-        self.x = torch.from_numpy(
+        self.x = torch.from_numpy( # <- (n_samples, data_dim)
             scaler.transform(xy)
-            .reshape(-1, self.seq_len, self.p)
             ).type(torch.float32)
 
         if verbose:
-            print(f"Loaded dataset with {self.n_samples} samples of dimension {self.p}, resulted in {self.n_seq} sequences of length {seq_len}.")
+            print(f"Loaded dataset with {self.n_samples} samples of dimension {self.data_dim}, resulted in {self.n_seq} sequences of length {seq_len}.")
 
     def __getitem__(self, index) -> torch.Tensor:
-        sample = self.x[index] # sequence <- (seq_len, data_dim )
-        if self.transform:
-            sample = self.transform(sample)
-        sequence = sample[:-1,:]
-        target = sample[-1,:]
+        sequence = self.x[index:index+self.seq_len]
+        target = self.x[index+1:index+self.seq_len+1]
         return sequence, target
 
     def __len__(self) -> int:
@@ -65,7 +61,7 @@ class RealDataset(Dataset):
         return self.x
     
     def get_whole_stream(self):
-        return self.x.reshape(self.n_samples, self.p)
+        return self.x.reshape(self.n_samples, self.data_dim)
     
 
 

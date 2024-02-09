@@ -46,11 +46,11 @@ class Config:
     train_val_split: float = 0.8 # . . . Split between training and validating samples
     num_samples: int = 10**3 # . . . . . Number of samples to generate (if any)
     data_dim: int = 2 # . . . . . . . . Dimension of one generated sample (if any)
-    seq_len: int = 10 #. . . . . . . . . Length of the input sequences
+    seq_len: int =  9 #. . . . . . . . . Length of the input sequences
 
 
     ## Network parameters
-    hidden_dim: int = 7 #. . . . . . Dimension of the hidden layers for the embedder
+    hidden_dim: int = 3 #. . . . . . Dimension of the hidden layers for the embedder
 
     num_layers: int = 3 #. . . . . . Number of layers for the generator
 

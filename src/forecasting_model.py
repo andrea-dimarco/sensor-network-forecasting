@@ -32,7 +32,7 @@ class SSF(pl.LightningModule):
         plot_losses: bool=False
     ) -> None:
         '''
-        The TimeGAN model.
+        The Single Sensor Forecasting model.
 
         Arguments:
             - `hparams`: dictionary that contains all the hyperparameters
@@ -67,9 +67,11 @@ class SSF(pl.LightningModule):
         # For 1 sensor
         # input.shape = ( batch_size, seq_len, data_dim )
         self.cell = Cell(input_size=hparams.data_dim,
+                         hidden_size=hparams.hidden_dim,
                          output_size=hparams.data_dim,
                          num_layers=hparams.num_layers,
-                         module_type=hparams.module_type)
+                         module_type=hparams.module_type,
+                         normalize=False)
         # Forward pass cache to avoid re-doing some computation
         self.fake = None
 
