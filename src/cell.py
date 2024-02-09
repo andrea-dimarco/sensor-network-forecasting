@@ -57,13 +57,15 @@ class Cell(nn.Module):
 
         if self.module_type == 'lstm':
             c0 = zeros(self.num_layers, batch_size, self.output_size)
-            out, _ = self.module(x, (c0, h0)) # shape = ( batch_size, seq_len, hidden_size )
+            out, _ = self.module(x, (c0, h0)) # shape = ( batch_size, seq_len, output_size )
         else:
-            out, _ = self.module(x, h0) # shape = ( batch_size, seq_len, hidden_size )
+            out, _ = self.module(x, h0) # shape = ( batch_size, seq_len, output_size )
 
         if self.normalize:
             # required shape (batch_size, output_size, seq_len )
             out = self.norm(out.permute(0, 2, 1)).permute(0, 2, 1)
+
+        out = out[:,-1,:] # only consider the last output of each sequence
 
         return out
 

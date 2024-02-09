@@ -11,65 +11,6 @@ import pandas as pd
 import numpy as np
 
 from data_generation import iid_sequence_generator, sine_process, wiener_process
-from hyperparameters import Config
-
-
-class SequenceDataset(Dataset):
-    def __init__(self,
-                 seq_type: str,
-                 p: int,
-                 N: int,
-                 seq_len: int,
-                 transform: Optional[Callable] = None,
-                 ) -> None:
-        '''
-        Generate a dataset of sequences sampled from the selected process.
-
-        Arguments:
-            - `seq_type`:
-            - `p`: dimension of one sample
-            - `N`: number of SAMPLES (not sequences) to generate
-            - `seq_len`: length of the sequence to extract from the data stream
-            - `transform`: optional transformation to be done on the data 
-        '''
-        super().__init__()
-
-        assert(seq_type in ['wein','sine','iid'])
-
-        # generate sequence
-        if seq_type == 'wein':
-            xy = wiener_process.multi_dim_wiener_process(p=p, N=N)
-        elif seq_type == 'sine':
-            xy = sine_process.get_sine_process(p=p, N=N)
-        else:
-            xy = iid_sequence_generator.get_iid_sequence(p=p, N=N)
-
-        # initialize parameters
-        self.N: int = N
-        self.p: int = p
-        self.seq_len: int = seq_len
-        self.n_seq: int = int(self.N / seq_len)
-        self.transform: Optional[Callable] = transform
-
-        # transform data
-        scaler = MinMaxScaler(feature_range=(0,1)) # preserves the data distribution
-        scaler.fit(xy)
-        self.x = torch.from_numpy(
-            scaler.transform(xy)
-            .reshape(-1, self.seq_len, self.p)
-            ).type(torch.float32)
-
-    def __getitem__(self, index) -> torch.Tensor:
-        sample = self.x[index]
-        if self.transform:
-            sample = self.transform(sample)
-        return sample
-
-    def __len__(self) -> int:
-        return self.n_seq
-    
-    def get_all_sequences(self):
-        return self.x
     
 
 class RealDataset(Dataset):
@@ -110,10 +51,12 @@ class RealDataset(Dataset):
             print(f"Loaded dataset with {self.n_samples} samples of dimension {self.p}, resulted in {self.n_seq} sequences of length {seq_len}.")
 
     def __getitem__(self, index) -> torch.Tensor:
-        sample = self.x[index]
+        sample = self.x[index] # sequence <- (seq_len, data_dim )
         if self.transform:
             sample = self.transform(sample)
-        return sample
+        sequence = sample[:-1,:]
+        target = sample[-1,:]
+        return sequence, target
 
     def __len__(self) -> int:
         return self.n_seq

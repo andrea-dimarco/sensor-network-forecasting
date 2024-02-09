@@ -16,7 +16,7 @@ class Config:
     early_stop_patience: int = 100 # . . Amount of epochs to wait for improvement
     decay_epoch: int = 0 # . . . . . . . Epoch from which to start lr decay
 
-    batch_size: int = 16 # . . . . . . . Amount of samples in each batch
+    batch_size: int = 32 # . . . . . . . Amount of samples in each batch
     lr: float = 0.0002 # . . . . . . . . adam: learning rate
     b1: float = 0.5  # . . . . . . . . . adam: decay of first order momentum of gradient
     b2: float = 0.999 #. . . . . . . . . adam: decay of first order momentum of gradient
@@ -26,7 +26,7 @@ class Config:
 
     n_cpu: int = 8  #. . . . . . . . . . Number of cpu threads to use for the dataloaders
 
-    log_images: int =  5 # . . . . . . . Number of images to logg
+    log_images: int =  5 # . . . . . . . Number of images to log
 
 
     ## Data loading

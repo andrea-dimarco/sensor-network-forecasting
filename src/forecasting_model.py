@@ -181,13 +181,13 @@ class SSF(pl.LightningModule):
         return optim
 
 
-    def loss_f(self, x: torch.Tensor) -> torch.Tensor:
+    def loss_f(self, sequence: torch.Tensor, target: torch.Tensor) -> torch.Tensor:
         '''
         Reconstruction loss
         '''
-        x_hat = self.cell(x)
+        pred = self.cell(sequence) # <- ( batch_size, data_dim)
 
-        return self.reconstruction_loss(x, x_hat)
+        return self.reconstruction_loss(target, pred)
    
 
     def training_step(self,
@@ -209,7 +209,8 @@ class SSF(pl.LightningModule):
                   logging and possibly the progress bar
         '''
         # Process the batch
-        loss = self.loss_f(batch)
+        x, y = batch
+        loss = self.loss_f(sequence=x, target=y)
 
         # Log results
         loss_dict = { "loss": loss }
@@ -234,11 +235,11 @@ class SSF(pl.LightningModule):
             - the loss and example images
         '''
         # Process the batch
-        loss = self.loss_f(batch)
-
+        x, y = batch
+        loss = self.loss_f(sequence=x, target=y)
 
         # visualize result
-        image = self.get_image_examples(batch[0], self.cell(batch)[0])
+        image = self.get_image_examples(y, self.cell(x), fake_label="Predicted Samples")
 
         # Validation loss
         self.log("val_loss", loss)
@@ -290,7 +291,7 @@ class SSF(pl.LightningModule):
         for x in outputs:
             images.extend(x["image"])
 
-        images = images[: self.hparams.log_images]
+        images = images[:self.hparams.log_images]
 
         if not self.is_sanity:  # ignore if it not a real validation epoch. The first one is not.
             self.logger.experiment.log(
