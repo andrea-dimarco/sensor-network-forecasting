@@ -1,0 +1,14 @@
+- Forecasting
+    - Feed forward semplice per ogni sensore (RNN, GRU, LSTM, Transformer)
+        - definisci il batch con (sequence, target)
+        - modifica la Loss in modo che abbia senso
+    - Due Sliding window
+        - 1. Più recenti 10-20 valori
+        - 2. Più recenti 100-200 summary statistics (var, media, min, max)
+
+    - Feed forward semplice per tutti i sensori insieme (RNN, GRU, LSTM, Transformer)
+        - qualcosa con le covariance
+
+- Detrending
+    - Kalman Filter
+    - Tbd
