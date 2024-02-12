@@ -15,6 +15,7 @@ from numpy import loadtxt, float32
 import warnings
 warnings.filterwarnings("ignore")
 
+
 def generate_data(datasets_folder="./datasets/"):
     hparams = Config()
 
@@ -122,7 +123,7 @@ def train(datasets_folder="./datasets/"):
 
 ### Testing Area
 datasets_folder = "./datasets/"
-#generate_data(datasets_folder)
+generate_data(datasets_folder)
 train(datasets_folder)
 
 

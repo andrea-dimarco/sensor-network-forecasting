@@ -109,8 +109,7 @@ class SSF(pl.LightningModule):
             ),
             batch_size=self.hparams["batch_size"],
             shuffle=True,
-            num_workers=self.hparams["n_cpu"],
-            pin_memory=True,
+            pin_memory=True
         )
         return train_loader
         
@@ -132,8 +131,7 @@ class SSF(pl.LightningModule):
             ),
             batch_size=self.hparams["batch_size"],
             shuffle=False,
-            num_workers=self.hparams["n_cpu"],
-            pin_memory=True,
+            pin_memory=True
         )
         return val_loader
 

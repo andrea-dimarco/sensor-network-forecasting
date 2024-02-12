@@ -19,51 +19,27 @@ class Cell(nn.Module):
         assert(module_type in ['rnn', 'gru', 'lstm'])
 
         super().__init__()
-        self.module_type = module_type
-        self.num_layers = num_layers
-        self.num_final_layers = int(num_layers/3+1)
-        self.hidden_size = hidden_size
-        self.output_size = output_size
-        self.normalize = normalize
-        
         # input.shape = ( batch_size, seq_len, feature_size )
-        if self.module_type == 'rnn':
+        if module_type == 'rnn':
             self.module = nn.RNN(input_size, hidden_size, num_layers, batch_first=True)
-        elif self.module_type == 'gru':
+        elif module_type == 'gru':
             self.module = nn.GRU(input_size, hidden_size, num_layers, batch_first=True)
-        elif self.module_type == 'lstm':
+        elif module_type == 'lstm':
             self.module = nn.LSTM(input_size, hidden_size, num_layers, batch_first=True)
         else:
             assert(False)
 
         self.fc = nn.Linear(hidden_size, output_size)
 
-        # Normalization
-        if self.normalize:
-            self.norm = nn.InstanceNorm1d(output_size, affine=True)
-        else:
-            self.norm = None
-
 
     def forward(self, x: Tensor) -> Tensor:
         '''
         Forward pass
         '''
-        batch_size = x.size()[0]
+        x, _ = self.module(x) # shape = ( batch_size, seq_len, output_size )
+        x = self.fc(x)
 
-        if self.module_type == 'lstm':
-            out, _ = self.module(x) # shape = ( batch_size, seq_len, output_size )
-        else:
-            out, _ = self.module(x) # shape = ( batch_size, seq_len, output_size )
-
-        if self.normalize:
-            # required shape (batch_size, output_size, seq_len )
-            out = self.norm(out.permute(0, 2, 1)).permute(0, 2, 1)
-
-        #out = out[:,-1,:] # only consider the last output of each sequence
-        out = self.fc(out)
-
-        return out
+        return x
 
 
 
