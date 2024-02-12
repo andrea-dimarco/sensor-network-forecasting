@@ -44,14 +44,6 @@ class Cell(nn.Module):
         else:
             self.norm = None
 
-        # initialize weights
-        for layer_p in self.module._all_weights:
-            for p in layer_p:
-                if 'weight' in p:
-                    normal_(self.module.__getattr__(p), 0.0, var)
-
-        self.fc.apply(init_weights)
-
 
     def forward(self, x: Tensor) -> Tensor:
         '''

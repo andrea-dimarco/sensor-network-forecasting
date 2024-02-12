@@ -6,13 +6,14 @@ from torch import cuda
 from pytorch_lightning import Trainer
 import wandb
 from hyperparameters import Config
-
+import numpy as np
 import torch
-
+import matplotlib.pyplot as plt
 from data_generation import iid_sequence_generator, sine_process, wiener_process
-from dataset_handling import train_test_split
+from dataset_handling import train_test_split, RealDataset
 from numpy import loadtxt, float32
-
+import warnings
+warnings.filterwarnings("ignore")
 
 def generate_data(datasets_folder="./datasets/"):
     hparams = Config()
@@ -75,7 +76,8 @@ def train(datasets_folder="./datasets/"):
     # Instantiate the model
     timegan = SSF(hparams=hparams,
                     train_file_path=train_dataset_path,
-                    val_file_path=val_dataset_path
+                    val_file_path=val_dataset_path,
+                    plot_losses=False
                     )
 
     # Define the logger -> https://www.wandb.com/articles/pytorch-lightning-with-weights-biases.
@@ -105,10 +107,22 @@ def train(datasets_folder="./datasets/"):
     # Log the trained model
     trainer.save_checkpoint('timegan.pth')
     wandb.save('timegan.pth')
-
+    with torch.no_grad():
+        timegan.eval()
+        dataset = RealDataset(file_path=train_dataset_path,seq_len=hparams.seq_len)
+        train_plot = np.ones_like(dataset.get_whole_stream()[:,0]) * np.nan
+        print(train_plot.shape)
+        y_pred = timegan(dataset.get_all_sequences())[:-hparams.seq_len,0]
+        print(y_pred.size())
+        #y_pred = y_pred[:, -1, :]
+        train_plot[hparams.seq_len:dataset.get_whole_stream().size()[0]] = y_pred
+        plt.plot(dataset.get_whole_stream()[:,0])
+        plt.plot(train_plot, c='r')
+        plt.show()
 
 ### Testing Area
 datasets_folder = "./datasets/"
 #generate_data(datasets_folder)
 train(datasets_folder)
+
 

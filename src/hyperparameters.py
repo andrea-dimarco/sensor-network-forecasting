@@ -26,7 +26,7 @@ class Config:
 
     n_cpu: int = 8  #. . . . . . . . . . Number of cpu threads to use for the dataloaders
 
-    log_images: int =  5 # . . . . . . . Number of images to log
+    log_images: int =  1 # . . . . . . . Number of images to log
 
 
     ## Data loading
@@ -46,7 +46,7 @@ class Config:
     train_val_split: float = 0.8 # . . . Split between training and validating samples
     num_samples: int = 10**3 # . . . . . Number of samples to generate (if any)
     data_dim: int = 2 # . . . . . . . . Dimension of one generated sample (if any)
-    seq_len: int =  9 #. . . . . . . . . Length of the input sequences
+    seq_len: int =  99 #. . . . . . . . . Length of the input sequences
 
 
     ## Network parameters

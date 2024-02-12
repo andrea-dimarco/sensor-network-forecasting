@@ -158,9 +158,7 @@ class SSF(pl.LightningModule):
         '''
 
         # Optimizers
-        optim = torch.optim.Adam(self.cell.parameters(recurse=True),
-                                  lr=self.hparams.lr,
-                                  betas=(self.hparams.b1, self.hparams.b2))
+        optim = torch.optim.Adam(self.cell.parameters(recurse=True))
 
         # linear decay scheduler
         #assert(self.hparams["n_epochs"] > self.hparams["decay_epoch"]), "Decay must start BEFORE the training ends!"
@@ -244,7 +242,7 @@ class SSF(pl.LightningModule):
         loss = self.loss_f(sequence=x, target=y)
 
         # visualize result
-        image = self.get_image_examples(y, self.cell(x), fake_label="Predicted Samples")
+        image = self.get_image_examples(y[0], self.cell(x)[0], fake_label="Predicted Samples")
 
         # Validation loss
         val_out = { "val_loss": loss, "image": image }
