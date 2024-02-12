@@ -78,6 +78,9 @@ class SSF(pl.LightningModule):
         # It avoids wandb logging when lighting does a sanity check on the validation
         self.is_sanity = True
 
+        # For the end of the validation step
+        self.validation_step_output = []
+
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         '''
@@ -244,9 +247,10 @@ class SSF(pl.LightningModule):
         image = self.get_image_examples(y, self.cell(x), fake_label="Predicted Samples")
 
         # Validation loss
+        val_out = { "val_loss": loss, "image": image }
         self.log("val_loss", loss)
-
-        return { "val_loss": loss, "image": image }
+        self.validation_step_output.append(val_out)
+        return val_out
 
 
     def get_image_examples(self,
@@ -271,7 +275,7 @@ class SSF(pl.LightningModule):
         return example_images
 
 
-    def validation_epoch_end(self, outputs: List[Dict[str, torch.Tensor]]
+    def on_validation_epoch_end(self
     ) -> Dict[str, torch.Tensor]:
         '''
         Implements the behaviouir at the end of a validation epoch
@@ -290,20 +294,23 @@ class SSF(pl.LightningModule):
         '''
         images = []
 
-        for x in outputs:
+        for x in self.validation_step_output:
             images.extend(x["image"])
 
-        images = images[:self.hparams.log_images]
+        images = images[: self.hparams["log_images"]]
 
         if not self.is_sanity:  # ignore if it not a real validation epoch. The first one is not.
+            #print(f"Logged {len(images)} images.")
+
             self.logger.experiment.log(
-                {"images": images },
+                {f"images": images },
                 step=self.global_step,
             )
         self.is_sanity = False
 
-        avg_loss = torch.stack([x["val_loss"] for x in outputs]).mean()
+        avg_loss = torch.stack([x["val_loss"] for x in self.validation_step_output]).mean()
         self.log_dict({"val_loss": avg_loss})
+        self.validation_step_output = []
         return {"val_loss": avg_loss}
     
 

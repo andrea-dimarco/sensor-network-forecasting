@@ -36,7 +36,6 @@ class Cell(nn.Module):
         else:
             assert(False)
 
-        
         self.fc = nn.Linear(hidden_size, output_size)
 
         # Normalization
@@ -59,13 +58,11 @@ class Cell(nn.Module):
         Forward pass
         '''
         batch_size = x.size()[0]
-        h0 = zeros(self.num_layers, batch_size, self.hidden_size) # initial state
 
         if self.module_type == 'lstm':
-            c0 = zeros(self.num_layers, batch_size, self.hidden_size)
-            out, _ = self.module(x, (c0, h0)) # shape = ( batch_size, seq_len, output_size )
+            out, _ = self.module(x) # shape = ( batch_size, seq_len, output_size )
         else:
-            out, _ = self.module(x, h0) # shape = ( batch_size, seq_len, output_size )
+            out, _ = self.module(x) # shape = ( batch_size, seq_len, output_size )
 
         if self.normalize:
             # required shape (batch_size, output_size, seq_len )
