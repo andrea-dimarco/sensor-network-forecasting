@@ -7,11 +7,10 @@ from dataclasses import dataclass
 @dataclass
 class Config:
     ## Training parameters
-    n_epochs: int = 20**1 #. . . . . . . Number of epochs of training
+    n_epochs: int = 10**1 #. . . . . . . Number of epochs of training
     early_stop_patience: int = 100 # . . Amount of epochs to wait for improvement
-    decay_epoch: int = 0 # . . . . . . . Epoch from which to start lr decay
+    batch_size: int = 16 # . . . . . . . Amount of samples in each batch
 
-    batch_size: int =  8 # . . . . . . . Amount of samples in each batch
     lr: float = 0.01 #. . . . . . . . . adam: learning rate
     b1: float = 0.75 # . . . . . . . . . adam: decay of first order momentum of gradient
     b2: float = 0.90 # . . . . . . . . . adam: decay of first order momentum of gradient
@@ -34,15 +33,14 @@ class Config:
                                # . . . . . . . . . with random mutual correlations
     train_test_split: float = 0.7 #. . . Split between training and testing samples
     train_val_split: float = 0.8 # . . . Split between training and validating samples
-    num_samples: int = 10**4 # . . . . . Number of samples to generate (if any)
-    data_dim: int =  2 # . . . . . . . . Dimension of one generated sample (if any)
-    seq_len: int = 99 #. . . . . . . . . Length of the input sequences
+    num_samples: int = 10**5 # . . . . . Number of samples to generate (if any)
+    data_dim: int =  1 # . . . . . . . . Dimension of one generated sample (if any)
+    seq_len: int  = 99 # . . . . . . . . Length of the input sequences
 
 
     ## Network parameters
-    hidden_dim: int = 10 #. . . . . . Dimension of the hidden layers for the embedder
-    num_layers: int = 1 #. . . . . . Number of layers for the generator
-    module_type: str = 'lstm' # . . . Module type for the generator
+    hidden_dim: int = 60 #. . . . . . Dimension of the hidden layers for the embedder
+    num_layers: int = 1 # . . . . . . Number of layers for the generator
     #. . . . . . . . . . . . . . . . . . . . Can be rnn, gru lstm 
 
 

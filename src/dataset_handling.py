@@ -9,15 +9,12 @@ import torch
 import pandas as pd
 
 import numpy as np
-
-from data_generation import iid_sequence_generator, sine_process, wiener_process
     
 
 class RealDataset(Dataset):
     def __init__(self,
                  file_path: Path,
                  seq_len: int,
-                 transform: Optional[Callable] = None,
                  verbose: bool = True
                  ) -> None:
         '''
@@ -34,22 +31,26 @@ class RealDataset(Dataset):
 
         # initialize parameters
         self.n_samples: int = xy.shape[0]
-        self.data_dim: int = xy.shape[1]
+        try:
+            self.data_dim: int = xy.shape[1]
+        except:
+            self.data_dim: int = 1
         self.seq_len: int = seq_len
         self.n_seq: int = int(self.n_samples / seq_len)
-        self.transform: Optional[Callable] = transform
 
         # transform data
-        scaler = MinMaxScaler(feature_range=(0,1)) # preserves the data distribution
+        scaler = MinMaxScaler(feature_range=(-1,1)) # preserves the data distribution
+        xy = xy.reshape(self.n_samples, self.data_dim) # needed when data_dim == 1
         scaler.fit(xy)
         self.x = torch.from_numpy( # <- (n_samples, data_dim)
             scaler.transform(xy)
-            ).type(torch.float32)
+            ).type(torch.float32
+            )
 
         if verbose:
             print(f"Loaded dataset with {self.n_samples} samples of dimension {self.data_dim}, resulted in {self.n_seq} sequences of length {seq_len}.")
 
-    def __getitem__(self, index) -> torch.Tensor:
+    def __getitem__(self, index) -> Tuple[torch.Tensor, torch.Tensor]:
         sequence = self.x[index:index+self.seq_len]
         target = self.x[index+1:index+self.seq_len+1]
         return sequence, target
@@ -57,10 +58,10 @@ class RealDataset(Dataset):
     def __len__(self) -> int:
         return self.n_seq
     
-    def get_all_sequences(self):
+    def get_all_sequences(self) -> torch.Tensor:
         return self.x
     
-    def get_whole_stream(self):
+    def get_whole_stream(self) -> torch.Tensor:
         return self.x.reshape(self.n_samples, self.data_dim)
     
 
@@ -79,10 +80,10 @@ def train_test_split(X, split: float=0.7, train_file_name: str="./datasets/train
     delimiter = int( X.shape[0] * split )
 
     # Train
-    df = pd.DataFrame(X[:delimiter,:])
+    df = pd.DataFrame(X[:delimiter])
     df.to_csv(train_file_name, index=False, header=False)
 
     # Test
-    df = pd.DataFrame(X[delimiter:,:])
+    df = pd.DataFrame(X[delimiter:])
     df.to_csv(test_file_name, index=False, header=False)
 

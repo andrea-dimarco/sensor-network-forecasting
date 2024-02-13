@@ -19,7 +19,6 @@ import pytorch_lightning as pl
 import dataset_handling as dh
 import utilities as ut
 from hyperparameters import Config
-from cell import Cell
 
 '''
 Single Sensor Forecasting
@@ -48,7 +47,7 @@ class SSF(pl.LightningModule):
         self.val_file_path  = val_file_path
 
         # loss criteria
-        self.reconstruction_loss = torch.nn.MSELoss()
+        self.reconstruction_loss = torch.nn.L1Loss()
 
         # Expected shapes 
         self.data_dim = hparams.data_dim
@@ -64,14 +63,23 @@ class SSF(pl.LightningModule):
             self.val_loss_history = None
 
         # Initialize Modules
-        # For 1 sensor
-        # input.shape = ( batch_size, seq_len, data_dim )
-        self.cell = Cell(input_size=hparams.data_dim,
-                         hidden_size=hparams.hidden_dim,
-                         output_size=hparams.data_dim,
-                         num_layers=hparams.num_layers,
-                         module_type=hparams.module_type,
-                         normalize=False)
+        # input = ( batch_size, seq_len, data_dim )
+        self.lstm = nn.LSTM(input_size=hparams.data_dim,
+                            hidden_size=hparams.hidden_dim,
+                            num_layers=hparams.num_layers,
+                            batch_first=True
+                            )
+        self.fc = nn.Linear(in_features=hparams.hidden_dim,
+                            out_features=hparams.data_dim
+                            )
+
+        # init weights
+        self.fc.apply(self.init_weights)
+        for layer_p in self.lstm._all_weights:
+            for p in layer_p:
+                if 'weight' in p:
+                    nn.init.xavier_uniform_(self.lstm.__getattr__(p))
+        
         # Forward pass cache to avoid re-doing some computation
         self.fake = None
 
@@ -87,12 +95,14 @@ class SSF(pl.LightningModule):
         Takes the noise and generates a batch of sequences
 
         Arguments:
-            - `Z`: input of the forward pass with shape [batch, seq_len, noise_dim]
+            - `x`: input of the forward pass with shape [batch, seq_len, data_dim]
 
         Returns:
-            - the translated image with shape [batch, seq_len, data_dim]
+            - the predicted sequences [batch, seq_len, data_dim]
         '''
-        return self.cell(x)
+        x, _ = self.lstm(x)
+        x = self.fc(x)
+        return x
 
 
     def train_dataloader(self) -> DataLoader:
@@ -156,39 +166,12 @@ class SSF(pl.LightningModule):
         '''
 
         # Optimizers
-        optim = torch.optim.Adam(self.cell.parameters(recurse=True))
+        optim = torch.optim.Adam(self.parameters(recurse=True),
+                                 lr=self.hparams["lr"],
+                                 betas=(self.hparams["b1"], self.hparams["b2"])
+                                 )
 
-        # linear decay scheduler
-        #assert(self.hparams["n_epochs"] > self.hparams["decay_epoch"]), "Decay must start BEFORE the training ends!"
-        #linear_decay = lambda epoch: float(1.0 - max(0, epoch-self.hparams["decay_epoch"]) / (self.hparams["n_epochs"]-self.hparams["decay_epoch"]))
-        
-
-        # Schedulers 
-        # lr_scheduler_E = torch.optim.lr_scheduler.LinearLR(
-        #     E_optim,
-        #     start_factor=1.0,
-        #     end_factor=0.1
-        # )
-        # return (
-        #     [E_optim, D_optim, G_optim, S_optim, R_optim],
-        #     [
-        #         {"scheduler": lr_scheduler_E, "interval": "epoch", "frequency": 1},
-        #         {"scheduler": lr_scheduler_D, "interval": "epoch", "frequency": 1},
-        #         {"scheduler": lr_scheduler_G, "interval": "epoch", "frequency": 1},
-        #         {"scheduler": lr_scheduler_S, "interval": "epoch", "frequency": 1},
-        #         {"scheduler": lr_scheduler_R, "interval": "epoch", "frequency": 1}
-        #     ]
-        # )
         return optim
-
-
-    def loss_f(self, sequence: torch.Tensor, target: torch.Tensor) -> torch.Tensor:
-        '''
-        Reconstruction loss
-        '''
-        pred = self.cell(sequence) # <- ( batch_size, data_dim)
-
-        return self.reconstruction_loss(target, pred)
    
 
     def training_step(self,
@@ -211,7 +194,8 @@ class SSF(pl.LightningModule):
         '''
         # Process the batch
         x, y = batch
-        loss = self.loss_f(sequence=x, target=y)
+        pred = self(x)
+        loss = self.reconstruction_loss(pred, y)
 
         # Log results
         loss_dict = { "loss": loss }
@@ -237,10 +221,11 @@ class SSF(pl.LightningModule):
         '''
         # Process the batch
         x, y = batch
-        loss = self.loss_f(sequence=x, target=y)
+        pred = self(x)
+        loss = self.reconstruction_loss(pred, y)
 
         # visualize result
-        image = self.get_image_examples(y[0], self.cell(x)[0], fake_label="Predicted Samples")
+        image = self.get_image_examples(y[0], self(x)[0], fake_label="Predicted Samples")
 
         # Validation loss
         val_out = { "val_loss": loss, "image": image }
@@ -296,8 +281,6 @@ class SSF(pl.LightningModule):
         images = images[: self.hparams["log_images"]]
 
         if not self.is_sanity:  # ignore if it not a real validation epoch. The first one is not.
-            #print(f"Logged {len(images)} images.")
-
             self.logger.experiment.log(
                 {f"images": images },
                 step=self.global_step,
@@ -310,8 +293,11 @@ class SSF(pl.LightningModule):
         return {"val_loss": avg_loss}
     
 
-    def plot(self):
-        if self.plot_losses and len(self.loss_history)>0:
-            import numpy as np
-            L = np.asarray(self.loss_history)
-            ut.plot_processes(samples=L, save_picture=False, show_plot=True)
+    def init_weights(self, m):
+        '''
+        Initialized the weights of the nn.Sequential block
+        '''
+        if isinstance(m, nn.Linear):
+            nn.init.xavier_uniform_(m.weight)
+            if hasattr(m, "bias") and m.bias is not None:
+                nn.init.zeros_(m.bias)
