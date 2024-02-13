@@ -8,7 +8,7 @@ import pandas as pd
 import matplotlib.pyplot as plt 
 
 
-def weiner_process(N=1000, lower_bound=0.0, upper_bound=1.0, alpha=0.01):
+def weiner_process(N=1000, lower_bound=-1.0, upper_bound=1.0, alpha=0.01):
     '''
     This function samples a Weiner process 
      and makes sure it stays withing bounds

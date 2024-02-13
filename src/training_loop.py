@@ -81,7 +81,7 @@ def train(datasets_folder="./datasets/"):
         timegan.eval()
         dataset = RealDataset(file_path=train_dataset_path,seq_len=hparams.seq_len)
         train_plot = np.ones_like(dataset.get_whole_stream()[:,0]) * np.nan
-        y_pred = timegan(dataset.get_all_sequences())[:-hparams.seq_len,0]
+        y_pred = timegan(dataset.get_all_sequences())[hparams.seq_len:,0]
         #y_pred = y_pred[:, -1, :]
         train_plot[hparams.seq_len:dataset.get_whole_stream().size()[0]] = y_pred
         plt.plot(dataset.get_whole_stream()[:,0])

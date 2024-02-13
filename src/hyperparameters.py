@@ -9,7 +9,7 @@ class Config:
     ## Training parameters
     n_epochs: int = 10**1 #. . . . . . . Number of epochs of training
     early_stop_patience: int = 100 # . . Amount of epochs to wait for improvement
-    batch_size: int = 16 # . . . . . . . Amount of samples in each batch
+    batch_size: int = 32 # . . . . . . . Amount of samples in each batch
 
     lr: float = 0.01 #. . . . . . . . . adam: learning rate
     b1: float = 0.75 # . . . . . . . . . adam: decay of first order momentum of gradient
@@ -39,7 +39,7 @@ class Config:
 
 
     ## Network parameters
-    hidden_dim: int = 60 #. . . . . . Dimension of the hidden layers for the embedder
+    hidden_dim: int = 10 #. . . . . . Dimension of the hidden layers for the embedder
     num_layers: int = 1 # . . . . . . Number of layers for the generator
     #. . . . . . . . . . . . . . . . . . . . Can be rnn, gru lstm 
 

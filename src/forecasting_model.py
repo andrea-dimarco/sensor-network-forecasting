@@ -47,7 +47,7 @@ class SSF(pl.LightningModule):
         self.val_file_path  = val_file_path
 
         # loss criteria
-        self.reconstruction_loss = torch.nn.L1Loss()
+        self.rec_loss = torch.nn.L1Loss()
 
         # Expected shapes 
         self.data_dim = hparams.data_dim
@@ -195,7 +195,7 @@ class SSF(pl.LightningModule):
         # Process the batch
         x, y = batch
         pred = self(x)
-        loss = self.reconstruction_loss(pred, y)
+        loss = self.rec_loss(pred, y)
 
         # Log results
         loss_dict = { "loss": loss }
@@ -222,7 +222,7 @@ class SSF(pl.LightningModule):
         # Process the batch
         x, y = batch
         pred = self(x)
-        loss = self.reconstruction_loss(pred, y)
+        loss = self.rec_loss(pred, y)
 
         # visualize result
         image = self.get_image_examples(y[0], self(x)[0], fake_label="Predicted Samples")
