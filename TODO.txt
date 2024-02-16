@@ -4,7 +4,7 @@
         - modifica la Loss in modo che abbia senso
     - Due Sliding window
         - 1. Più recenti 10-20 valori
-        - 2. Più recenti 100-200 summary statistics (var, media, min, max)
+        - 2. Più recenti 100-200 summary statistics (min, max media, var)
 
     - Feed forward semplice per tutti i sensori insieme (RNN, GRU, LSTM, Transformer)
         - qualcosa con le covariance
@@ -12,3 +12,15 @@
 - Detrending
     - Kalman Filter
     - Tbd
+
+- Fix get_all_pi() function
+
+- Train on the real dataset
+
+
+- Domande
+    - Perché facciamo forecasting?
+    - Perché fare la rete con 100 lstm diverse??
+    - A cosa serve il lookback le summary statistics
+    - Le summary statistichs vanno fatte per tutti i sensori insieme
+        oppure divise per ogni sensore?

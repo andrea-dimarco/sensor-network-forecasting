@@ -21,9 +21,9 @@ import utilities as ut
 from hyperparameters import Config
 
 '''
-Single Sensor Forecasting
+Privileged Sensor Forecasting
 '''
-class SSF(pl.LightningModule):
+class PSF(pl.LightningModule):
     def __init__(self,
         hparams: Union[Dict, Config],
         train_file_path: Path,
@@ -52,6 +52,7 @@ class SSF(pl.LightningModule):
         # Expected shapes 
         self.data_dim = hparams.data_dim
         self.lookback = hparams.lookback
+        self.pi_dim   = hparams.data_dim*4
 
         if plot_losses:
             self.plot_losses = True
@@ -69,7 +70,7 @@ class SSF(pl.LightningModule):
                             num_layers=hparams.num_layers,
                             batch_first=True
                             )
-        self.fc = nn.Linear(in_features=hparams.hidden_dim,
+        self.fc = nn.Linear(in_features=hparams.hidden_dim+self.pi_dim,
                             out_features=hparams.data_dim
                             )
 
@@ -90,7 +91,7 @@ class SSF(pl.LightningModule):
         self.validation_step_output = []
 
 
-    def forward(self, x: torch.Tensor) -> torch.Tensor:
+    def forward(self, x: torch.Tensor, p: torch.Tensor) -> torch.Tensor:
         '''
         Takes the noise and generates a batch of sequences
 
@@ -100,8 +101,14 @@ class SSF(pl.LightningModule):
         Returns:
             - the predicted sequences [batch, lookback, data_dim]
         '''
+        # x    = (batch, lookback, data)
         x, _ = self.lstm(x)
+        # x   = (batch, lookback, hidden)
+        # p   = (batch, lookback, 4)
+        x = torch.cat((x,p), dim=2)
+        # x   = (batch, lookback, hidden+4)
         x = self.fc(x)
+        # x   = (batch, lookback, data)
         return x
 
 
@@ -113,9 +120,10 @@ class SSF(pl.LightningModule):
             - `train_loader`: the train set DataLoader
         '''
         train_loader = DataLoader(
-            dh.RealDataset(
+            dh.PrivilegedDataset(
                 file_path=self.train_file_path,
-                lookback=self.lookback
+                lookback=self.lookback,
+                privileged_lookback=self.hparams.privileged_lookback
             ),
             batch_size=self.hparams["batch_size"],
             shuffle=True,
@@ -135,9 +143,10 @@ class SSF(pl.LightningModule):
             - `val_loader`: the validation set DataLoader
         '''
         val_loader = DataLoader(
-            dh.RealDataset(
+            dh.PrivilegedDataset(
                 file_path=self.val_file_path,
-                lookback=self.lookback
+                lookback=self.lookback,
+                privileged_lookback=self.hparams.privileged_lookback
             ),
             batch_size=self.hparams["batch_size"],
             shuffle=False,
@@ -193,8 +202,8 @@ class SSF(pl.LightningModule):
                   logging and possibly the progress bar
         '''
         # Process the batch
-        x, y = batch
-        pred = self(x)
+        x, y, p = batch
+        pred = self(x, p)
         loss = self.rec_loss(pred, y)
 
         # Log results
@@ -220,12 +229,12 @@ class SSF(pl.LightningModule):
             - the loss and example images
         '''
         # Process the batch
-        x, y = batch
-        pred = self(x)
+        x, y, p = batch
+        pred = self(x, p)
         loss = self.rec_loss(pred, y)
 
         # visualize result
-        image = self.get_image_examples(y[0], self(x)[0], fake_label="Predicted Samples")
+        image = self.get_image_examples(y[0], self(x, p)[0], fake_label="Predicted Samples")
 
         # Validation loss
         val_out = { "val_loss": loss, "image": image }

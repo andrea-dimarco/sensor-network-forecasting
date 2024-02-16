@@ -1,5 +1,6 @@
 
 from forecasting_model import SSF
+from privileged_model import PSF
 from pytorch_lightning.loggers.wandb import WandbLogger
 from pytorch_lightning.callbacks import EarlyStopping
 from torch import cuda
@@ -10,7 +11,7 @@ import numpy as np
 import torch
 import matplotlib.pyplot as plt
 from data_generation import wiener_process
-from dataset_handling import train_test_split, RealDataset
+import dataset_handling as dh
 from numpy import loadtxt, float32
 
 import warnings
@@ -28,7 +29,7 @@ def generate_data(datasets_folder="./datasets/"):
     train_dataset_path = f"{datasets_folder}{hparams.dataset_name}_training.csv"
     val_dataset_path   = f"{datasets_folder}{hparams.dataset_name}_testing.csv"
 
-    train_test_split(X=loadtxt(dataset_path, delimiter=",", dtype=float32),
+    dh.train_test_split(X=loadtxt(dataset_path, delimiter=",", dtype=float32),
                     split=hparams.train_test_split,
                     train_file_name=train_dataset_path,
                     test_file_name=val_dataset_path    
@@ -54,36 +55,37 @@ def train(datasets_folder="./datasets/"):
         raise ValueError("Dataset not supported.")
 
     # Instantiate the model
-    timegan = SSF(hparams=hparams,
+    model = PSF(hparams=hparams,
                     train_file_path=train_dataset_path,
                     val_file_path=val_dataset_path,
                     plot_losses=False
                     )
 
     # Define the logger -> https://www.wandb.com/articles/pytorch-lightning-with-weights-biases.
-    wandb_logger = WandbLogger(project="SSF PyTorch (2024)", log_model=True)
+    wandb_logger = WandbLogger(project="PSF PyTorch (2024)", log_model=True)
 
-    wandb_logger.experiment.watch(timegan, log='all', log_freq=500)
+    wandb_logger.experiment.watch(model, log='all', log_freq=500)
 
     # Define the trainer
     trainer = Trainer(logger=wandb_logger,
-                    max_epochs=hparams.n_epochs,
-                    val_check_interval=1.0
+                    max_epochs=hparams.n_epochs
                     )
 
     # Start the training
-    trainer.fit(timegan)
+    trainer.fit(model)
 
     # Log the trained model
-    trainer.save_checkpoint('SSF-checkpoint.pth')
-    wandb.save('SSF-wandb.pth')
+    torch.save(model.state_dict(), "./model.pth")
     with torch.no_grad():
-        timegan.eval()
-        dataset = RealDataset(file_path=train_dataset_path,seq_len=hparams.seq_len)
+        model.eval()
+        dataset = dh.PrivilegedDataset(file_path=train_dataset_path,
+                                       lookback=hparams.lookback,
+                                       privileged_lookback=hparams.privileged_lookback
+                                       )
         train_plot = np.ones_like(dataset.get_whole_stream()[:,0]) * np.nan
-        y_pred = timegan(dataset.get_all_sequences())[hparams.seq_len:,0]
+        y_pred = model(dataset.get_all_sequences(), dataset.get_all_pi())[hparams.lookback:,0]
         #y_pred = y_pred[:, -1, :]
-        train_plot[hparams.seq_len:dataset.get_whole_stream().size()[0]] = y_pred
+        train_plot[hparams.lookback:dataset.get_whole_stream().size()[0]] = y_pred
         plt.plot(dataset.get_whole_stream()[:,0])
         plt.plot(train_plot, c='r')
         plt.show()

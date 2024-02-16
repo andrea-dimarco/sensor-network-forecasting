@@ -7,7 +7,7 @@ from dataclasses import dataclass
 @dataclass
 class Config:
     ## Training parameters
-    n_epochs: int = 10**1 #. . . . . . . Number of epochs of training
+    n_epochs: int =  5**1 #. . . . . . . Number of epochs of training
     early_stop_patience: int = 100 # . . Amount of epochs to wait for improvement
     batch_size: int = 32 # . . . . . . . Amount of samples in each batch
 
@@ -33,9 +33,10 @@ class Config:
                                # . . . . . . . . . with random mutual correlations
     train_test_split: float = 0.7 #. . . Split between training and testing samples
     train_val_split: float = 0.8 # . . . Split between training and validating samples
-    num_samples: int = 10**5 # . . . . . Number of samples to generate (if any)
+    num_samples: int = 10**3 # . . . . . Number of samples to generate (if any)
     data_dim: int =  1 # . . . . . . . . Dimension of one generated sample (if any)
-    seq_len: int  = 99 # . . . . . . . . Length of the input sequences
+    lookback: int  = 9 # . . . . . . . . Length of the input sequences
+    privileged_lookback:int = 100 #. . . Length of the privileged lookback
 
 
     ## Network parameters
