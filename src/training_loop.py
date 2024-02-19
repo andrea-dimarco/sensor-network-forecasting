@@ -1,40 +1,17 @@
 
-from forecasting_model import SSF
-from privileged_model import PSF
-from pytorch_lightning.loggers.wandb import WandbLogger
-from pytorch_lightning.callbacks import EarlyStopping
-from torch import cuda
-from pytorch_lightning import Trainer
-import wandb
-from hyperparameters import Config
-import numpy as np
 import torch
-import matplotlib.pyplot as plt
-from data_generation import wiener_process
+import wandb
+import numpy as np
 import dataset_handling as dh
-from numpy import loadtxt, float32
+import matplotlib.pyplot as plt
+from privileged_model import PSF
+from forecasting_model import SSF
+from hyperparameters import Config
+from pytorch_lightning import Trainer
+from pytorch_lightning.loggers.wandb import WandbLogger
 
 import warnings
 warnings.filterwarnings("ignore")
-
-
-def generate_data(datasets_folder="./datasets/"):
-    hparams = Config()
-
-    # Generate and store the dataset as requested
-    dataset_path = f"{datasets_folder}{hparams.dataset_name}_generated_stream.csv"
-    wiener_process.save_wiener_process(p=hparams.data_dim, N=hparams.num_samples, file_path=dataset_path)
-    print(f"The {hparams.dataset_name} dataset has been succesfully created and stored into:\n\t- {dataset_path}")
-    
-    train_dataset_path = f"{datasets_folder}{hparams.dataset_name}_training.csv"
-    val_dataset_path   = f"{datasets_folder}{hparams.dataset_name}_testing.csv"
-
-    dh.train_test_split(X=loadtxt(dataset_path, delimiter=",", dtype=float32),
-                    split=hparams.train_test_split,
-                    train_file_name=train_dataset_path,
-                    test_file_name=val_dataset_path    
-                    )
-    print(f"The {hparams.dataset_name} dataset has been split successfully into:\n\t- {train_dataset_path}\n\t- {val_dataset_path}")
 
 
 def train(datasets_folder="./datasets/"):
@@ -55,14 +32,20 @@ def train(datasets_folder="./datasets/"):
         raise ValueError("Dataset not supported.")
 
     # Instantiate the model
-    model = PSF(hparams=hparams,
-                    train_file_path=train_dataset_path,
-                    val_file_path=val_dataset_path,
-                    plot_losses=False
-                    )
-
-    # Define the logger -> https://www.wandb.com/articles/pytorch-lightning-with-weights-biases.
-    wandb_logger = WandbLogger(project="PSF PyTorch (2024)", log_model=True)
+    if hparams.use_pi:
+        model = PSF(hparams=hparams,
+                        train_file_path=train_dataset_path,
+                        val_file_path=val_dataset_path,
+                        plot_losses=False
+                        )
+        wandb_logger = WandbLogger(project="PSF PyTorch (2024)", log_model=True)
+    else:
+        model = SSF(hparams=hparams,
+                        train_file_path=train_dataset_path,
+                        val_file_path=val_dataset_path,
+                        plot_losses=False
+                        )
+        wandb_logger = WandbLogger(project="SSF PyTorch (2024)", log_model=True)    
 
     wandb_logger.experiment.watch(model, log='all', log_freq=500)
 
@@ -75,40 +58,43 @@ def train(datasets_folder="./datasets/"):
     trainer.fit(model)
 
     # Log the trained model
-    torch.save(model.state_dict(), "./model.pth")
+    if hparams.use_pi:
+        torch.save(model.state_dict(), "./pi-model.pth")
+    else:
+        torch.save(model.state_dict(), "./model.pth")
+
+    # Validate the model
     with torch.no_grad():
         model.eval()
+        model.cpu()
         dataset = dh.PrivilegedDataset(file_path=train_dataset_path,
                                        lookback=hparams.lookback,
                                        privileged_lookback=hparams.privileged_lookback
                                        )
-        train_plot = np.ones_like(dataset.get_whole_stream()[:,0]) * np.nan
-        y_pred = model(dataset.get_all_sequences(), dataset.get_all_pi())[hparams.lookback:,0]
-        #y_pred = y_pred[:, -1, :]
-        train_plot[hparams.lookback:dataset.get_whole_stream().size()[0]] = y_pred
-        plt.plot(dataset.get_whole_stream()[:,0])
-        plt.plot(train_plot, c='r')
+        print("Loaded real testing dataset.")
+        synth_plot = np.ones_like(dataset.get_whole_stream()) * np.nan
+        if hparams.use_pi:
+            y_pred = model(dataset.get_all_sequences(), dataset.get_all_pi()
+                        ).reshape(-1,hparams.data_dim)[hparams.lookback:]
+        else:
+            y_pred = model(dataset.get_all_sequences()
+                        ).reshape(-1,hparams.data_dim)[hparams.lookback:]
+        synth_plot[hparams.lookback:dataset.n_samples] = y_pred
+        print("Predictions done.")
+        # only plot the first dimension
+        horizon = min(hparams.plot_horizon, dataset.n_samples)
+        plt.plot(dataset.get_whole_stream()[:horizon,0])
+        plt.plot(synth_plot[:horizon,0], c='r')
+
+        print("Plot done.")
+        plt.savefig("forecasting-plot.png")
         plt.show()
 
 
-import random
-import pytorch_lightning as pl
-def set_seed(seed=0):
-    np.random.seed(seed)
-    random.seed(seed)
-
-    torch.cuda.manual_seed(seed)
-    torch.manual_seed(seed)
-    torch.backends.cudnn.deterministic = True # Can have performance impact
-    torch.backends.cudnn.benchmark = False
-
-    _ = pl.seed_everything(seed)
-
-
 ### Testing Area
-datasets_folder = "./datasets/"
-set_seed(69)
-generate_data(datasets_folder)
-train(datasets_folder)
+import utilities as ut
+ut.set_seed(69)
+ut.generate_data()
+train()
 
 

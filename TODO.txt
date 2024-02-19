@@ -13,8 +13,6 @@
     - Kalman Filter
     - Tbd
 
-- Fix get_all_pi() function
-
 - Train on the real dataset
 
 
