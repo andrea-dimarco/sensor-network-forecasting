@@ -157,7 +157,7 @@ def train_test_split(X, split: float=0.7, train_file_name: str="./datasets/train
     This function takes a tensor and saves it as two different csv files according to the given split parameter.
 
     Arguments:
-    - `X`: the tensor containing the data, dimensions must be ( num_samples, sample_dim )
+    - `X`: the array numpy containing the data, dimensions must be ( num_samples, sample_dim )
     - `split`: the perchentage of samples to keep for training
     - `train_file_name`: name of the .csv file that will contain the training set
     - `test_file_name`: name of the .csv file that will contain the testing set
@@ -175,15 +175,50 @@ def train_test_split(X, split: float=0.7, train_file_name: str="./datasets/train
 
 
 
+def refactor_dataset(dataset_path:str="./datasets/data857489168.csv",
+                     new_dataset_path:str="./datasets/sensor-data.csv"):
+    '''
+    Refactors the dataset to be compatible with numpy.
+    '''
+    dataset = pd.read_csv(dataset_path,
+                          sep=", ",
+                          engine="python")
+    
+    dataset = dataset.pivot(index='SampleTime',
+                            columns='SensorID',
+                            values='Value')
+    # TODO: rimuovi questo
+    dataset = dataset['2']
+    dataset.to_csv(new_dataset_path,
+                   index=False) # TODO: header at false
+
+
+
 ## TESTING AREA
-# from hyperparameters import Config
-# dataset = PrivilegedDataset(
-#     file_path="./datasets/wien_training.csv",
-#     lookback = Config().lookback,
-#     privileged_lookback=Config().privileged_lookback
-# )
+if __name__ == '__main__':
+    from hyperparameters import Config
 
-# print("Sequences:", dataset.get_all_sequences().size())
-# print("Privileged:", dataset[0][2].size())
 
-# print("Stream", dataset.get_all_pi().size())
+    hparams = Config()
+    dataset_path = "./datasets/sensor-data-2.csv"
+    train_dataset_path = f"./datasets/{hparams.train_file_name}"
+    val_dataset_path   = f"./datasets/{hparams.val_file_name}"
+    test_dataset_path  = f"./datasets/{hparams.test_file_name}"
+
+    dataset = pd.read_csv("./datasets/sensor-data.csv")
+    dataset = dataset['2']
+    dataset.to_csv(dataset_path, index=False, header=False)
+
+    # Train & Test
+    train_test_split(X=np.loadtxt(dataset_path, delimiter=",", dtype=np.float32),
+                    split=hparams.train_test_split,
+                    train_file_name=train_dataset_path,
+                    test_file_name=test_dataset_path    
+                    )
+
+    # Train & Validation
+    train_test_split(X=np.loadtxt(train_dataset_path, delimiter=",", dtype=np.float32),
+                    split=hparams.train_val_split,
+                    train_file_name=train_dataset_path,
+                    test_file_name=val_dataset_path    
+                    )

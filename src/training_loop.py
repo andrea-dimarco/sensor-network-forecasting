@@ -23,11 +23,13 @@ def train(datasets_folder="./datasets/"):
 
     if hparams.dataset_name in ['sine', 'wien', 'iid', 'cov']:
         train_dataset_path = f"{datasets_folder}{hparams.dataset_name}_training.csv"
-        val_dataset_path  = f"{datasets_folder}{hparams.dataset_name}_testing.csv"
+        val_dataset_path   = f"{datasets_folder}{hparams.dataset_name}_validating.csv"
+        test_dataset_path  = f"{datasets_folder}{hparams.dataset_name}_testing.csv"
 
     elif hparams.dataset_name == 'real':
-        train_dataset_path = hparams.train_file_path
-        val_dataset_path  = hparams.test_file_path
+        train_dataset_path = str(datasets_folder) + hparams.train_file_name
+        val_dataset_path  = str(datasets_folder) + hparams.val_file_name
+        test_dataset_path = str(datasets_folder) + hparams.test_file_name
     else:
         raise ValueError("Dataset not supported.")
 
@@ -92,9 +94,10 @@ def train(datasets_folder="./datasets/"):
 
 
 ### Testing Area
-import utilities as ut
-ut.set_seed(69)
-ut.generate_data()
-train()
+if __name__ == '__main__':
+    import utilities as ut
+    ut.set_seed(69)
+    ut.generate_data()
+    train()
 
 

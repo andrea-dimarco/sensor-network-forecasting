@@ -163,7 +163,7 @@ def generate_data(datasets_folder="./datasets/"):
     '''
     from hyperparameters import Config
     from data_generation import sine_process, iid_sequence_generator, wiener_process
-    from dataset_handling import train_test_split
+    import dataset_handling as dh
     from numpy import loadtxt, float32
 
     hparams = Config()
@@ -202,23 +202,25 @@ def generate_data(datasets_folder="./datasets/"):
         val_dataset_path   = f"{datasets_folder}{hparams.dataset_name}_validating.csv"
 
         # Train & Test
-        train_test_split(X=loadtxt(dataset_path, delimiter=",", dtype=float32),
+        dh.train_test_split(X=loadtxt(dataset_path, delimiter=",", dtype=float32),
                         split=hparams.train_test_split,
                         train_file_name=train_dataset_path,
                         test_file_name=val_dataset_path    
                         )
         
         # Train & Validation
-        train_test_split(X=np.loadtxt(train_dataset_path, delimiter=",", dtype=np.float32),
+        dh.train_test_split(X=np.loadtxt(train_dataset_path, delimiter=",", dtype=np.float32),
                         split=hparams.train_val_split,
                         train_file_name=train_dataset_path,
                         test_file_name=val_dataset_path    
                         )
         print(f"The {hparams.dataset_name} dataset has been split successfully into:\n\t- {train_dataset_path}\n\t- {val_dataset_path}")
+    
     elif hparams.dataset_name == 'real':
         train_dataset_path = datasets_folder + hparams.train_file_name
         val_dataset_path   = datasets_folder + hparams.val_file_name
         test_dataset_path  = datasets_folder + hparams.test_file_name
+        
     else:
         raise ValueError("Dataset not supported.")
     

@@ -22,3 +22,4 @@
     - A cosa serve il lookback le summary statistics
     - Le summary statistichs vanno fatte per tutti i sensori insieme
         oppure divise per ogni sensore?
+    - come gestire i NaN del dataset?
