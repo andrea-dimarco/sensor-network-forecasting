@@ -209,6 +209,10 @@ if __name__ == '__main__':
     dataset = dataset['2']
     dataset.to_csv(dataset_path, index=False, header=False)
 
+
+    # ignore sensors with too many nulls
+    #
+
     # Train & Test
     train_test_split(X=np.loadtxt(dataset_path, delimiter=",", dtype=np.float32),
                     split=hparams.train_test_split,

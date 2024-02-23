@@ -96,7 +96,7 @@ def train(datasets_folder="./datasets/"):
 ### Testing Area
 if __name__ == '__main__':
     import utilities as ut
-    ut.set_seed(69)
+    ut.set_seed()
     ut.generate_data()
     train()
 

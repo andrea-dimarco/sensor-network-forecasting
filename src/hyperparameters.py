@@ -8,8 +8,8 @@ from dataclasses import dataclass
 class Config:
 
     ## Training parameters
-    use_pi: bool  = False # . . . . . . . Whether to use PSF or SSF
-    n_epochs: int = 10**2 #. . . . . . . Number of epochs of training
+    use_pi: bool  = True # . . . . . . . Whether to use PSF or SSF
+    n_epochs: int = 10**1 #. . . . . . . Number of epochs of training
     batch_size: int = 32 # . . . . . . . Amount of samples in each batch
 
     lr: float = 0.01 # . . . . . . . . . adam: learning rate
@@ -34,10 +34,10 @@ class Config:
                                # . . . . . . wien: runs a number or wiener processes 
                                # . . . . . . . . . with random mutual correlations
     train_test_split: float = 0.7 #. . . Split between training and testing samples
-    train_val_split: float = 0.8 # . . . Split between training and validating samples
+    train_val_split: float = 0.9 # . . . Split between training and validating samples
     num_samples: int = 10**4 # . . . . . Number of samples to generate (if any)
     lookback: int  = 9 # . . . . . . . . Length of the input sequences
-    privileged_lookback:int = 100 #. . . Length of the privileged lookback
+    privileged_lookback: int = 100 # . . Length of the privileged lookback
 
 
     ## Network parameters
@@ -48,4 +48,4 @@ class Config:
     ## Testing phase
     alpha: float = 0.1 # . . . . . . . . Parameter for the Anomaly Detector
     h: float = 10 #. . . . . . . . . . . Parameter for the Anomaly Detector
-    plot_horizon: int = 250 #. . . . . How many samples to plot when testing
+    plot_horizon: int = 250 #. . . . . . How many samples to plot when testing
