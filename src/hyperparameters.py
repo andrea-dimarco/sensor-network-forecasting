@@ -8,7 +8,7 @@ from dataclasses import dataclass
 class Config:
 
     ## Training parameters
-    use_pi: bool  = True # . . . . . . . Whether to use PSF or SSF
+    model_type: bool = 'FFSF' #. . . . . Whether to use PSF, SSF or FFSF
     n_epochs: int = 10**1 #. . . . . . . Number of epochs of training
     batch_size: int = 32 # . . . . . . . Amount of samples in each batch
 
@@ -25,7 +25,7 @@ class Config:
     test_file_name  = "testing.csv"
     val_file_name   = "validating.csv"
     data_dim: int =  1 # . . . . . . . . Dimension of one sample
-    dataset_name: str = 'real' # . . . . Which dataset to use
+    dataset_name: str = 'wien' # . . . . Which dataset to use
                                # . . . . . . real: gets the samples from csv files
                                # . . . . . . sine: runs independent sine processes wih random phases
                                # . . . . . . iid: samples iids from a multivariate
@@ -48,4 +48,4 @@ class Config:
     ## Testing phase
     alpha: float = 0.1 # . . . . . . . . Parameter for the Anomaly Detector
     h: float = 10 #. . . . . . . . . . . Parameter for the Anomaly Detector
-    plot_horizon: int = 250 #. . . . . . How many samples to plot when testing
+    plot_horizon: int = 20 #. . . . . . How many samples to plot when testing

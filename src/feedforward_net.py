@@ -1,7 +1,7 @@
 
 
 # Libraries
-from typing import Sequence, List, Dict, Tuple, Union, Mapping
+from typing import Sequence, Dict, Tuple, Union, Mapping
 
 from dataclasses import asdict
 from pathlib import Path
@@ -65,19 +65,20 @@ class FFSF(pl.LightningModule):
 
         # Initialize Modules
         # input = ( batch_size, lookback*data_dim )
-        # TODO: is this he right way to do it?
-        self.feed = []
-        self.feed += nn.Linear(in_features=hparams.data_dim*hparams.lookback,
-                               out_features=hparams.hidden_dim
-                               )
+        model = [
+            nn.Linear(in_features=hparams.lookback*hparams.data_dim, out_features=hparams.hidden_dim),
+            nn.ReLU(inplace=True)
+        ]
         for i in range(hparams.num_layers-1):
-            self.feed += nn.Linear(in_features=hparams.hidden_dim,
-                                   out_features=hparams.hidden_dim
-                                   )
+            model += [
+                nn.Linear(in_features=hparams.hidden_dim, out_features=hparams.hidden_dim),
+                nn.ReLU(inplace=True)
+            ]
+        self.feed = nn.Sequential(*model)
+
         # TODO: the summary statistics should be given to self.fc or self.feed ??
         self.fc = nn.Linear(in_features=hparams.hidden_dim+self.pi_dim,
-                            out_features=hparams.data_dim
-                            )
+                            out_features=hparams.data_dim)
 
         # init weights
         self.feed.apply(self.init_weights)
@@ -103,15 +104,14 @@ class FFSF(pl.LightningModule):
         Returns:
             - the predicted sequences [batch, lookback, data_dim]
         '''
-        # TODO: fix this
-        # x    = (batch, lookback, data)
-        x, _ = self.lstm(x)
-        # x   = (batch, lookback, hidden)
-        # p   = (batch, lookback, 4)
-        x = torch.cat((x,p), dim=2)
-        # x   = (batch, lookback, hidden+4)
+        # x    = (batch, lookback*data)
+        x = self.feed(x)
+        # x   = (batch, hidden)
+        # p   = (batch, 4)
+        x = torch.cat((x,p), dim=1)
+        # x   = (batch, hidden+4)
         x = self.fc(x)
-        # x   = (batch, lookback, data)
+        # x   = (batch, data)
         return x
 
 
@@ -123,7 +123,7 @@ class FFSF(pl.LightningModule):
             - `train_loader`: the train set DataLoader
         '''
         train_loader = DataLoader(
-            dh.PrivilegedDataset(
+            dh.FeedDataset(
                 file_path=self.train_file_path,
                 lookback=self.lookback,
                 privileged_lookback=self.hparams.privileged_lookback
@@ -146,7 +146,7 @@ class FFSF(pl.LightningModule):
             - `val_loader`: the validation set DataLoader
         '''
         val_loader = DataLoader(
-            dh.PrivilegedDataset(
+            dh.FeedDataset(
                 file_path=self.val_file_path,
                 lookback=self.lookback,
                 privileged_lookback=self.hparams.privileged_lookback
@@ -167,14 +167,11 @@ class FFSF(pl.LightningModule):
         We have five optimizers (and relative schedulers):
 
         - `optim`: optimzer for the Embedder
-        
-        - `lr_scheduler`: learning rate scheduler for the Embedder
 
         Each scheduler implements a linear decay to 0 after `self.hparams.decay_epoch`
 
         Returns:
             - the optimizers
-            - the schedulers for the optimizers
         '''
 
         # Optimizers
@@ -237,7 +234,7 @@ class FFSF(pl.LightningModule):
         loss = self.rec_loss(pred, y)
 
         # visualize result
-        image = self.get_image_examples(y[0], self(x, p)[0], fake_label="Predicted Samples")
+        image = self.get_image_examples(y, self(x, p), fake_label="Predicted Samples")
 
         # Validation loss
         val_out = { "val_loss": loss, "image": image }

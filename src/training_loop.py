@@ -6,6 +6,7 @@ import dataset_handling as dh
 import matplotlib.pyplot as plt
 from privileged_model import PSF
 from forecasting_model import SSF
+from feedforward_net import FFSF
 from hyperparameters import Config
 from pytorch_lightning import Trainer
 from pytorch_lightning.loggers.wandb import WandbLogger
@@ -34,21 +35,26 @@ def train(datasets_folder="./datasets/"):
         raise ValueError("Dataset not supported.")
 
     # Instantiate the model
-    if hparams.use_pi:
+    if hparams.model_type == 'FFSF':
+        model = FFSF(hparams=hparams,
+                        train_file_path=train_dataset_path,
+                        val_file_path=val_dataset_path,
+                        plot_losses=False
+                        )
+    elif hparams.model_type == 'PSF':
         model = PSF(hparams=hparams,
                         train_file_path=train_dataset_path,
                         val_file_path=val_dataset_path,
                         plot_losses=False
                         )
-        wandb_logger = WandbLogger(project="PSF PyTorch (2024)", log_model=True)
-    else:
+    elif hparams.model_type == 'SSF':
         model = SSF(hparams=hparams,
                         train_file_path=train_dataset_path,
                         val_file_path=val_dataset_path,
                         plot_losses=False
                         )
-        wandb_logger = WandbLogger(project="SSF PyTorch (2024)", log_model=True)    
-
+        
+    wandb_logger = WandbLogger(project=f"{hparams.model_type} PyTorch (2024)", log_model=True)       
     wandb_logger.experiment.watch(model, log='all', log_freq=500)
 
     # Define the trainer
@@ -60,43 +66,66 @@ def train(datasets_folder="./datasets/"):
     trainer.fit(model)
 
     # Log the trained model
-    if hparams.use_pi:
-        torch.save(model.state_dict(), "./pi-model.pth")
-    else:
-        torch.save(model.state_dict(), "./model.pth")
+    torch.save(model.state_dict(), f"./{hparams.model_type}-model.pth")
 
     # Validate the model
     with torch.no_grad():
         model.eval()
         model.cpu()
-        dataset = dh.PrivilegedDataset(file_path=train_dataset_path,
-                                       lookback=hparams.lookback,
-                                       privileged_lookback=hparams.privileged_lookback
-                                       )
+        if hparams.model_type == 'FFSF':
+            dataset = dh.FeedDataset(file_path=train_dataset_path,
+                                        lookback=hparams.lookback,
+                                        privileged_lookback=hparams.privileged_lookback
+                                        )
+        elif hparams.model_type == 'PSF':
+            dataset = dh.PrivilegedDataset(file_path=train_dataset_path,
+                                        lookback=hparams.lookback,
+                                        privileged_lookback=hparams.privileged_lookback
+                                        )
+        elif hparams.model_type == 'SSF':
+            dataset = dh.RealDataset(file_path=train_dataset_path,
+                                    lookback=hparams.lookback
+                                    )
+        else:
+            raise ValueError
+        
         print("Loaded real testing dataset.")
+
         synth_plot = np.ones_like(dataset.get_whole_stream()) * np.nan
-        if hparams.use_pi:
+
+        if hparams.model_type == 'PSF':
             y_pred = model(dataset.get_all_sequences(), dataset.get_all_pi()
                         ).reshape(-1,hparams.data_dim)[hparams.lookback:]
-        else:
+            
+        elif hparams.model_type == "FFSF":
+            y_pred = model(dataset.get_all_sequences(), dataset.get_all_pi()
+                        ).reshape(-1)[:-hparams.lookback]
+            
+        elif hparams.model_type == 'SSF':
             y_pred = model(dataset.get_all_sequences()
                         ).reshape(-1,hparams.data_dim)[hparams.lookback:]
+
         synth_plot[hparams.lookback:dataset.n_samples] = y_pred
+
         print("Predictions done.")
         # only plot the first dimension
         horizon = min(hparams.plot_horizon, dataset.n_samples)
-        plt.plot(dataset.get_whole_stream()[:horizon,0])
-        plt.plot(synth_plot[:horizon,0], c='r')
+        if hparams.model_type == 'PSF' or hparams.model_type == "SSF":
+            plt.plot(dataset.get_whole_stream()[:horizon,0])
+            plt.plot(synth_plot[:horizon,0], c='r')
+        else:
+            plt.plot(dataset.get_whole_stream()[:horizon])
+            plt.plot(synth_plot[:horizon], c='r')
 
         print("Plot done.")
-        plt.savefig("forecasting-plot.png")
+        plt.savefig(f"{hparams.model_type}-forecasting-plot.png")
         plt.show()
 
 
 ### Testing Area
 if __name__ == '__main__':
     import utilities as ut
-    ut.set_seed()
+    ut.set_seed(69)
     ut.generate_data()
     train()
 

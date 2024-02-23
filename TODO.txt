@@ -11,4 +11,4 @@
     - DO NOT assume any value for the NaNs
 
 - Domande:
-    - 
+    - le summary statistics vanno nella sequenza in input o a parte come prima?
