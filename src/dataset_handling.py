@@ -274,38 +274,71 @@ def refactor_dataset(dataset_path:str="./datasets/data857489168.csv",
     '''
     Refactors the dataset to be compatible with numpy.
     '''
-    dataset = pd.read_csv(dataset_path,
-                          sep=", ",
-                          engine="python")
+    dataset = pd.read_csv(dataset_path)
     
     dataset = dataset.pivot(index='SampleTime',
                             columns='SensorID',
                             values='Value')
     # TODO: rimuovi questo
-    dataset = dataset['2']
+    #dataset = dataset['2']
     dataset.to_csv(new_dataset_path,
                    index=False) # TODO: header at false
 
+def clean_dataset(null_threshold=1,dataset_path:str="./datasets/sensor-data.csv",
+                     new_dataset_path:str="./datasets/sensor_data_cleaned.csv"):
+    
+    df = pd.read_csv(dataset_path)
 
+    # Drop all columns with too many NULL
+    col_count = 0
+    for col in df.columns:
+        null_count = df[col].isnull().sum()
+        if null_count >= null_threshold:
+            df = df.drop(columns=col)
+            col_count += 1
+    print("Numbers of cols dropped",col_count)
+
+    #probably unneeded
+    # drop column if it starts with some nulls and has nulls after some real values
+    if null_threshold > 1:
+        col_count = 0
+        def get_first_non_null(column):
+            for index,value in enumerate(column):
+                if pd.notna(value):
+                    return index
+        for col in df.columns:
+            index = get_first_non_null(col)
+            to_delete = df[col].iloc[index:].isnull().any()
+            if to_delete:
+                print("Nulls after the start",df[col].iloc[index:].isnull().sum())
+                print("Deleting column",col)
+                df = df.drop(columns=col)
+                col_count += 1
+        print("Columns dropped",col_count)
+    df.to_csv(new_dataset_path,
+                   index=False) # TODO: header at false
 
 ## TESTING AREA
 if __name__ == '__main__':
     from hyperparameters import Config
     import utilities as ut
 
-    hparams = Config()
-    dataset_path = "./datasets/sensor-data-2.csv"
-    train_dataset_path = f"./datasets/{hparams.train_file_name}"
-    val_dataset_path   = f"./datasets/{hparams.val_file_name}"
-    test_dataset_path  = f"./datasets/{hparams.test_file_name}"
+    # must have the original dataset, change the headers and strip all NULLs and spaces!
+    #refactor_dataset()
+    clean_dataset()
+    # hparams = Config()
+    # dataset_path = "./datasets/sensor-data-2.csv"
+    # train_dataset_path = f"./datasets/{hparams.train_file_name}"
+    # val_dataset_path   = f"./datasets/{hparams.val_file_name}"
+    # test_dataset_path  = f"./datasets/{hparams.test_file_name}"
 
-    train_path, val_path, test_path = ut.generate_data()
-    dataset = FeedDataset(file_path=train_path,
-                          lookback=hparams.lookback,
-                          privileged_lookback=hparams.privileged_lookback
-                          )
+    # train_path, val_path, test_path = ut.generate_data()
+    # dataset = FeedDataset(file_path=train_path,
+    #                       lookback=hparams.lookback,
+    #                       privileged_lookback=hparams.privileged_lookback
+    #                       )
 
-    print(len(dataset))
+    #print(len(dataset))
 
     # dataset = pd.read_csv("./datasets/sensor-data.csv")
     # dataset = dataset['2']
