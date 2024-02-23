@@ -149,7 +149,7 @@ if True:
         train_plot = np.ones_like(dataset) * np.nan
         y_pred = model(X_train)
         y_pred = y_pred[:, -1, :]
-        train_plot[lookback : train.size()[0]] = model(X_train)[:, -1, :]
+        train_plot[lookback : train.size()[0]] = y_pred
 
         # shift test predictions for plotting
         test_plot = np.ones_like(dataset) * np.nan

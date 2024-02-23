@@ -89,32 +89,35 @@ def train(datasets_folder="./datasets/"):
         else:
             raise ValueError
         
-        print("Loaded real testing dataset.")
-
-        synth_plot = np.ones_like(dataset.get_whole_stream()) * np.nan
+        print("Loaded testing dataset.")
+        synth_plot = np.zeros_like(dataset.get_whole_stream()) * np.nan
 
         if hparams.model_type == 'PSF':
             y_pred = model(dataset.get_all_sequences(), dataset.get_all_pi()
-                        ).reshape(-1,hparams.data_dim)[hparams.lookback:]
-            
-        elif hparams.model_type == "FFSF":
-            y_pred = model(dataset.get_all_sequences(), dataset.get_all_pi()
-                        ).reshape(-1)[:-hparams.lookback]
+                        ).reshape(-1,hparams.data_dim)
             
         elif hparams.model_type == 'SSF':
             y_pred = model(dataset.get_all_sequences()
-                        ).reshape(-1,hparams.data_dim)[hparams.lookback:]
+                        ).reshape(-1,hparams.data_dim)
 
-        synth_plot[hparams.lookback:dataset.n_samples] = y_pred
+        elif hparams.model_type == "FFSF":
+            y_pred = model(dataset.get_all_sequences(), dataset.get_all_pi()
+                        ).reshape(-1)
+
+
+        if hparams.model_type in ['SSF', 'PSF']:
+            synth_plot[hparams.lookback:] = y_pred[hparams.lookback:]
+        elif hparams.model_type == 'FFSF':
+            synth_plot = y_pred
 
         print("Predictions done.")
         # only plot the first dimension
         horizon = min(hparams.plot_horizon, dataset.n_samples)
-        if hparams.model_type == 'PSF' or hparams.model_type == "SSF":
+        if hparams.model_type in ['PSF', 'SSF']:
             plt.plot(dataset.get_whole_stream()[:horizon,0])
             plt.plot(synth_plot[:horizon,0], c='r')
         else:
-            plt.plot(dataset.get_whole_stream()[:horizon])
+            plt.plot(dataset.get_all_targets()[:horizon])
             plt.plot(synth_plot[:horizon], c='r')
 
         print("Plot done.")

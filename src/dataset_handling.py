@@ -78,8 +78,6 @@ class PrivilegedDataset(Dataset):
         Arguments:
             - `file_path`: the path of the file containing the data stream
             - `lookback`: length of the sequence to extract from the data stream
-            - `privileged_lookback`: lenght of the sequence from which to compute the summary statistics
-            - `verbose`: if to print informations
         '''
         super().__init__()
 
@@ -215,6 +213,13 @@ class FeedDataset(Dataset):
     def __len__(self) -> int:
         return self.n_seq
     
+    def get_all_targets(self) -> torch.Tensor:
+        targs = torch.zeros(self.n_seq, self.data_dim)
+        for i in range(len(self)):
+            target = self.x[i+self.lookback].reshape(self.data_dim)
+            targs[i] += target
+        return targs.reshape(-1)
+
     def get_all_sequences(self) -> torch.Tensor:
         seqs = torch.zeros(self.n_seq, self.lookback, self.data_dim)
         for i in range(len(self)):
