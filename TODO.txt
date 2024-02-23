@@ -10,5 +10,7 @@
     - if NaNs are at the beguinning, start after NaNs don't appear anymore
     - DO NOT assume any value for the NaNs
 
+- Final plot with test dataset
+
 - Domande:
     - le summary statistics vanno nella sequenza in input o a parte come prima?
