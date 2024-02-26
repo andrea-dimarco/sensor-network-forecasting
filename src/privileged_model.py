@@ -156,9 +156,7 @@ class PSF(pl.LightningModule):
         return val_loader
 
 
-    def configure_optimizers(self
-    ) -> Tuple[optim.Optimizer, optim.Optimizer, optim.Optimizer, optim.Optimizer, optim.Optimizer]:
-    #) -> Tuple[Sequence[optim.Optimizer], Sequence[Dict[str, Any]]]:
+    def configure_optimizers(self):
         '''
         Instantiate the optimizers and schedulers.
 
@@ -181,7 +179,13 @@ class PSF(pl.LightningModule):
                                  betas=(self.hparams["b1"], self.hparams["b2"])
                                  )
 
-        return optim
+        lr_scheduler = torch.optim.lr_scheduler.LinearLR(
+            optim,
+            start_factor=self.hparams["decay_start"],
+            end_factor=self.hparams["decay_end"]
+        )
+
+        return ([optim], [lr_scheduler])
    
 
     def training_step(self,

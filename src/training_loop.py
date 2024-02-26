@@ -10,6 +10,7 @@ from feedforward_net import FFSF
 from hyperparameters import Config
 from pytorch_lightning import Trainer
 from pytorch_lightning.loggers.wandb import WandbLogger
+from pytorch_lightning.callbacks.early_stopping import EarlyStopping
 
 import warnings
 warnings.filterwarnings("ignore")
@@ -61,9 +62,18 @@ def train(datasets_folder="./datasets/", hparams:Config=Config()):
     wandb_logger = WandbLogger(project=f"{hparams.model_type} PyTorch (2024)", log_model=True)       
     wandb_logger.experiment.watch(model, log='all', log_freq=500)
 
+    # Early stopper
+    early_stop_callback = EarlyStopping(monitor="val_loss", 
+                                        patience=hparams.patience,
+                                        mode="min",
+                                        verbose=False,
+                                        strict=False
+                                        )
+
     # Define the trainer
     trainer = Trainer(logger=wandb_logger,
-                    max_epochs=hparams.n_epochs
+                    max_epochs=hparams.n_epochs,
+                    callbacks=[early_stop_callback]
                     )
 
     # Start the training
@@ -74,7 +84,6 @@ def train(datasets_folder="./datasets/", hparams:Config=Config()):
 
     # Validate the model
     validate_model(model, train_dataset_path, test_dataset_path)
-
 
 
 def validate_model(model:SSF|PSF|FFSF, train_dataset_path:str, test_dataset_path:str, hparams:Config=Config()) -> None:
@@ -193,7 +202,7 @@ def validate_model(model:SSF|PSF|FFSF, train_dataset_path:str, test_dataset_path
             plt.plot(synth_plot_test[dataset_train.n_samples-horizon_test:dataset_train.n_samples+horizon_test], c='g')
 
         print("Plot done.")
-        plt.savefig(f"{hparams.model_type}-forecasting-plot.png")
+        plt.savefig(f"img/{hparams.model_type}-forecasting-plot.png")
         plt.show()
 
 

@@ -1,7 +1,7 @@
 
 
 # Libraries
-from typing import Sequence, Dict, Tuple, Union, Mapping
+from typing import Sequence, List, Dict, Tuple, Union, Mapping
 
 from dataclasses import asdict
 from pathlib import Path
@@ -159,9 +159,7 @@ class FFSF(pl.LightningModule):
         return val_loader
 
 
-    def configure_optimizers(self
-    ) -> Tuple[optim.Optimizer, optim.Optimizer, optim.Optimizer, optim.Optimizer, optim.Optimizer]:
-    #) -> Tuple[Sequence[optim.Optimizer], Sequence[Dict[str, Any]]]:
+    def configure_optimizers(self):
         '''
         Instantiate the optimizers and schedulers.
 
@@ -180,8 +178,13 @@ class FFSF(pl.LightningModule):
                                  lr=self.hparams["lr"],
                                  betas=(self.hparams["b1"], self.hparams["b2"])
                                  )
+        lr_scheduler = torch.optim.lr_scheduler.LinearLR(
+            optim,
+            start_factor=self.hparams["decay_start"],
+            end_factor=self.hparams["decay_end"]
+        )
 
-        return optim
+        return ([optim], [lr_scheduler])
    
 
     def training_step(self,

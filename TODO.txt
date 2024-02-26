@@ -8,7 +8,7 @@
 
 - Have more images to show Big T
 
-- Final plot with test dataset
+- Change Wandb plot
 
 - Domande:
     - 

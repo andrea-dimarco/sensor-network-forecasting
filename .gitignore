@@ -1,6 +1,7 @@
 *.pth
 wandb/*
 *(2024)
+wien_*.csv
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

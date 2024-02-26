@@ -8,13 +8,17 @@ from dataclasses import dataclass
 class Config:
 
     ## Training parameters
-    model_type: bool = 'FFSF' #. . . . . Whether to use PSF, SSF or FFSF
-    n_epochs: int = 10**0 #. . . . . . . Number of epochs of training
-    batch_size: int = 32 # . . . . . . . Amount of samples in each batch
+    model_type: bool = 'SSF' # . . . . . Whether to use PSF, SSF or FFSF
+    n_epochs: int = 10**4 #. . . . . . . Number of epochs of training
+    batch_size: int = 16 # . . . . . . . Amount of samples in each batch
+    patience: int =  500 # . . . . . . . Patience for the early stopping
 
     lr: float = 0.01 # . . . . . . . . . adam: learning rate
     b1: float = 0.75 # . . . . . . . . . adam: decay of first order momentum of gradient
     b2: float = 0.90 # . . . . . . . . . adam: decay of first order momentum of gradient
+
+    decay_start: float = 1.0 # . . . . . Starting decay factor for the schedulers
+    decay_end: float   = 0.1 #. . . . . Ending decay factor for the scheduler
 
     log_images: int =  1 # . . . . . . . Number of images to log
 
@@ -24,7 +28,7 @@ class Config:
     train_file_name = "training.csv"
     test_file_name  = "testing.csv"
     val_file_name   = "validating.csv"
-    dataset_name: str = 'wien' # . . . . Which dataset to use
+    dataset_name: str = 'real' # . . . . Which dataset to use
                                # . . . . . . real: gets the samples from csv files
                                # . . . . . . sine: runs independent sine processes wih random phases
                                # . . . . . . iid: samples iids from a multivariate
@@ -35,14 +39,14 @@ class Config:
     train_test_split: float = 0.7 #. . . Split between training and testing samples
     train_val_split: float = 0.8 # . . . Split between training and validating samples
     data_dim: int =  1 # . . . . . . . . Dimension of one sample
-    num_samples: int = 10**3 # . . . . . Number of samples to generate (if any)
-    lookback: int  = 9 # . . . . . . . . Length of the input sequences
-    privileged_lookback: int = 100 # . . Length of the privileged lookback
+    num_samples: int = 10**4 # . . . . . Number of samples to generate (if any)
 
 
     ## Network parameters
-    hidden_dim: int = 20 # . . . . . . . Dimension of the hidden layers for the lstm
+    hidden_dim: int = 50 # . . . . . . . Dimension of the hidden layers for the lstm
     num_layers: int = 1 #. . . . . . . . Number of layers for the generator
+    lookback: int = 50 # . . . . . . . . Length of the input sequences
+    privileged_lookback: int = 100 # . . Length of the privileged lookback
 
 
     ## Testing phase
