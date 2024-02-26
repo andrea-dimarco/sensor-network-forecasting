@@ -28,6 +28,7 @@ class PSF(pl.LightningModule):
         hparams: Union[Dict, Config],
         train_file_path: Path,
         val_file_path: Path,
+        data_dim: int,
         plot_losses: bool=False
     ) -> None:
         '''
@@ -50,7 +51,7 @@ class PSF(pl.LightningModule):
         self.rec_loss = torch.nn.L1Loss()
 
         # Expected shapes 
-        self.data_dim = hparams.data_dim
+        self.data_dim = data_dim
         self.lookback = hparams.lookback
         self.pi_dim   = hparams.data_dim*4
 

@@ -2,15 +2,13 @@
     - Kalman Filter
     - To be decided
 
-- Feedforward with only fac
-
 - Train on the real dataset
     - at least 1000 epochs
-    - delete sensors with nulls throughout the time-series
-    - if NaNs are at the beguinning, start after NaNs don't appear anymore
-    - DO NOT assume any value for the NaNs
+    - compare FFSF and SSF models
+
+- Have more images to show Big T
 
 - Final plot with test dataset
 
 - Domande:
-    - le summary statistics vanno nella sequenza in input o a parte come prima?
+    - 

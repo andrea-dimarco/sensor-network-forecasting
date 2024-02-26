@@ -24,7 +24,6 @@ class Config:
     train_file_name = "training.csv"
     test_file_name  = "testing.csv"
     val_file_name   = "validating.csv"
-    data_dim: int =  1 # . . . . . . . . Dimension of one sample
     dataset_name: str = 'real' # . . . . Which dataset to use
                                # . . . . . . real: gets the samples from csv files
                                # . . . . . . sine: runs independent sine processes wih random phases
@@ -35,6 +34,7 @@ class Config:
                                # . . . . . . . . . with random mutual correlations
     train_test_split: float = 0.7 #. . . Split between training and testing samples
     train_val_split: float = 0.8 # . . . Split between training and validating samples
+    data_dim: int =  1 # . . . . . . . . Dimension of one sample
     num_samples: int = 10**4 # . . . . . Number of samples to generate (if any)
     lookback: int  = 9 # . . . . . . . . Length of the input sequences
     privileged_lookback: int = 100 # . . Length of the privileged lookback

@@ -33,24 +33,31 @@ def train(datasets_folder="./datasets/"):
         test_dataset_path = str(datasets_folder) + hparams.test_file_name
     else:
         raise ValueError("Dataset not supported.")
+    
+
+    # get model dimension
+    data_dim = dh.RealDataset(file_path=train_dataset_path, lookback=hparams.lookback).data_dim
 
     # Instantiate the model
     if hparams.model_type == 'FFSF':
         model = FFSF(hparams=hparams,
                         train_file_path=train_dataset_path,
                         val_file_path=val_dataset_path,
+                        data_dim=data_dim,
                         plot_losses=False
                         )
     elif hparams.model_type == 'PSF':
         model = PSF(hparams=hparams,
                         train_file_path=train_dataset_path,
                         val_file_path=val_dataset_path,
+                        data_dim=data_dim,
                         plot_losses=False
                         )
     elif hparams.model_type == 'SSF':
         model = SSF(hparams=hparams,
                         train_file_path=train_dataset_path,
                         val_file_path=val_dataset_path,
+                        data_dim=data_dim,
                         plot_losses=False
                         )
         
