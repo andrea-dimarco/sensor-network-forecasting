@@ -3,10 +3,8 @@
     - To be decided
 
 - Train on the real dataset
-    - at least 1000 epochs
     - compare FFSF and SSF models
-
-- Have more images to show Big T
+    - Why does the validation loss increases?
 
 - Change Wandb plot
 

@@ -83,7 +83,7 @@ def train(datasets_folder="./datasets/", hparams:Config=Config()):
     torch.save(model.state_dict(), f"./{hparams.model_type}-model.pth")
 
     # Validate the model
-    validate_model(model, train_dataset_path, test_dataset_path)
+    validate_model(model, train_dataset_path, val_dataset_path)#test_dataset_path)
 
 
 def validate_model(model:SSF|PSF|FFSF, train_dataset_path:str, test_dataset_path:str, hparams:Config=Config()) -> None:
@@ -178,7 +178,6 @@ def validate_model(model:SSF|PSF|FFSF, train_dataset_path:str, test_dataset_path
             y_pred = model(dataset_test.get_all_sequences(), dataset_test.get_all_pi()
                         ).reshape(-1)
 
-
         if hparams.model_type in ['SSF', 'PSF']:
             synth_plot_test[dataset_train.n_samples+hparams.lookback:] = y_pred[hparams.lookback:]
         elif hparams.model_type == 'FFSF':
@@ -187,22 +186,23 @@ def validate_model(model:SSF|PSF|FFSF, train_dataset_path:str, test_dataset_path
         print("Predictions on testing set done.")
 
 
-        # only plot the first dimension
+        # Only plot the first dimension
         if hparams.model_type in ['PSF', 'SSF']:
             plt.plot(dataset_train.get_whole_stream()[:horizon_train,0], c='b')
             plt.plot(synth_plot_train[:horizon_train,0], c='r')
 
-            plt.plot(plot_test[dataset_train.n_samples-horizon_test:dataset_train.n_samples+horizon_test,0], c='b')
-            plt.plot(synth_plot_test[dataset_train.n_samples-horizon_test:dataset_train.n_samples+horizon_test,0], c='g')
+            plt.plot(plot_test[dataset_train.n_samples-horizon_test : dataset_train.n_samples+horizon_test,0], c='b')
+            plt.plot(synth_plot_test[dataset_train.n_samples-horizon_test : dataset_train.n_samples+horizon_test,0], c='g')
+
         else:
             plt.plot(dataset_train.get_all_targets()[:horizon_train], c='b')
             plt.plot(synth_plot_train[:horizon_train], c='r')
 
-            plt.plot(plot_test[dataset_train.n_samples-horizon_test:dataset_train.n_samples+horizon_test], c='b')
-            plt.plot(synth_plot_test[dataset_train.n_samples-horizon_test:dataset_train.n_samples+horizon_test], c='g')
+            plt.plot(plot_test[dataset_train.n_samples : dataset_train.n_samples+horizon_test], c='b')
+            plt.plot(synth_plot_test[dataset_train.n_samples : dataset_train.n_samples+horizon_test], c='g')
 
         print("Plot done.")
-        plt.savefig(f"img/{hparams.model_type}-forecasting-plot.png")
+        plt.savefig(f"img/{hparams.model_type}-{hparams.n_epochs}-e-{hparams.hidden_dim}-hs-{hparams.seed}-seed.png")
         plt.show()
 
 
@@ -210,7 +210,7 @@ def validate_model(model:SSF|PSF|FFSF, train_dataset_path:str, test_dataset_path
 ### Testing Area
 if __name__ == '__main__':
     import utilities as ut
-    ut.set_seed(69)
+    ut.set_seed(Config().seed)
     ut.generate_data()
     train()
 
