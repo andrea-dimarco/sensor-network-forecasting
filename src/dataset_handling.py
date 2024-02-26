@@ -325,12 +325,12 @@ if __name__ == '__main__':
 
     # must have the original dataset, change the headers and strip all NULLs and spaces!
     #refactor_dataset()
-    clean_dataset()
-    # hparams = Config()
-    # dataset_path = "./datasets/sensor-data-2.csv"
-    # train_dataset_path = f"./datasets/{hparams.train_file_name}"
-    # val_dataset_path   = f"./datasets/{hparams.val_file_name}"
-    # test_dataset_path  = f"./datasets/{hparams.test_file_name}"
+    #clean_dataset()
+    hparams = Config()
+    dataset_path = "./datasets/sensor_data_2.csv"
+    train_dataset_path = f"./datasets/{hparams.train_file_name}"
+    val_dataset_path   = f"./datasets/{hparams.val_file_name}"
+    test_dataset_path  = f"./datasets/{hparams.test_file_name}"
 
     # train_path, val_path, test_path = ut.generate_data()
     # dataset = FeedDataset(file_path=train_path,
@@ -340,24 +340,24 @@ if __name__ == '__main__':
 
     #print(len(dataset))
 
-    # dataset = pd.read_csv("./datasets/sensor-data.csv")
-    # dataset = dataset['2']
-    # dataset.to_csv(dataset_path, index=False, header=False)
+    dataset = pd.read_csv("./datasets/sensor_data_cleaned.csv")
+    dataset = dataset['2']
+    dataset.to_csv(dataset_path, index=False, header=False)
 
 
     # # ignore sensors with too many nulls
     # #
 
     # # Train & Test
-    # train_test_split(X=np.loadtxt(dataset_path, delimiter=",", dtype=np.float32),
-    #                 split=hparams.train_test_split,
-    #                 train_file_name=train_dataset_path,
-    #                 test_file_name=test_dataset_path    
-    #                 )
+    train_test_split(X=np.loadtxt(dataset_path, delimiter=",", dtype=np.float32),
+                     split=hparams.train_test_split,
+                     train_file_name=train_dataset_path,
+                     test_file_name=test_dataset_path    
+                     )
 
-    # # Train & Validation
-    # train_test_split(X=np.loadtxt(train_dataset_path, delimiter=",", dtype=np.float32),
-    #                 split=hparams.train_val_split,
-    #                 train_file_name=train_dataset_path,
-    #                 test_file_name=val_dataset_path    
-    #                 )
+    # Train & Validation
+    train_test_split(X=np.loadtxt(train_dataset_path, delimiter=",", dtype=np.float32),
+                    split=hparams.train_val_split,
+                    train_file_name=train_dataset_path,
+                    test_file_name=val_dataset_path    
+                    )
