@@ -8,8 +8,8 @@ from dataclasses import dataclass
 class Config:
 
     ## Training parameters
-    model_type: bool = 'PSF' #. . . . . Whether to use PSF, SSF or FFSF
-    n_epochs: int = 10**3 #. . . . . . . Number of epochs of training
+    model_type: bool = 'FFSF' #. . . . . Whether to use PSF, SSF or FFSF
+    n_epochs: int = 10**0 #. . . . . . . Number of epochs of training
     batch_size: int = 32 # . . . . . . . Amount of samples in each batch
 
     lr: float = 0.01 # . . . . . . . . . adam: learning rate
@@ -24,7 +24,7 @@ class Config:
     train_file_name = "training.csv"
     test_file_name  = "testing.csv"
     val_file_name   = "validating.csv"
-    dataset_name: str = 'real' # . . . . Which dataset to use
+    dataset_name: str = 'wien' # . . . . Which dataset to use
                                # . . . . . . real: gets the samples from csv files
                                # . . . . . . sine: runs independent sine processes wih random phases
                                # . . . . . . iid: samples iids from a multivariate
@@ -35,7 +35,7 @@ class Config:
     train_test_split: float = 0.7 #. . . Split between training and testing samples
     train_val_split: float = 0.8 # . . . Split between training and validating samples
     data_dim: int =  1 # . . . . . . . . Dimension of one sample
-    num_samples: int = 10**4 # . . . . . Number of samples to generate (if any)
+    num_samples: int = 10**3 # . . . . . Number of samples to generate (if any)
     lookback: int  = 9 # . . . . . . . . Length of the input sequences
     privileged_lookback: int = 100 # . . Length of the privileged lookback
 
@@ -48,4 +48,4 @@ class Config:
     ## Testing phase
     alpha: float = 0.1 # . . . . . . . . Parameter for the Anomaly Detector
     h: float = 10 #. . . . . . . . . . . Parameter for the Anomaly Detector
-    plot_horizon: int = 100 #. . . . . . How many samples to plot when testing
+    plot_horizon: int = 200 #. . . . . . How many samples to plot when testing

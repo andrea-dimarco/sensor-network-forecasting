@@ -205,7 +205,7 @@ def generate_data(datasets_folder="./datasets/"):
         dh.train_test_split(X=loadtxt(dataset_path, delimiter=",", dtype=float32),
                         split=hparams.train_test_split,
                         train_file_name=train_dataset_path,
-                        test_file_name=val_dataset_path    
+                        test_file_name=test_dataset_path    
                         )
         
         # Train & Validation

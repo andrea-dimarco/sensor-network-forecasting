@@ -46,7 +46,7 @@ if True:
     hparams = Config()
     data_dim = hparams.data_dim
     n_samples = hparams.num_samples
-    lookback = hparams.seq_len
+    lookback = hparams.lookback
     train_size = int(n_samples*0.7)
 
     dataset = multi_dim_wiener_process(p=data_dim, N=n_samples)
@@ -67,7 +67,7 @@ if True:
 
     print(f"Training Features: {X_train.size()}, Training Targets {y_train.size()}")
     print(f"Testing Features: {X_train.size()}, Testing Targets {y_train.size()}")
-    print(f"Shape: ( num_sequences, seq_len, data_dim )")
+    print(f"Shape: ( num_sequences, lookback, data_dim )")
 
 
 

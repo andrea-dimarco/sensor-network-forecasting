@@ -268,7 +268,6 @@ def train_test_split(X, split: float=0.7, train_file_name: str="./datasets/train
     df.to_csv(test_file_name, index=False, header=False)
 
 
-
 def refactor_dataset(dataset_path:str="./datasets/data857489168.csv",
                      new_dataset_path:str="./datasets/sensor-data.csv"):
     '''
@@ -283,6 +282,7 @@ def refactor_dataset(dataset_path:str="./datasets/data857489168.csv",
     #dataset = dataset['2']
     dataset.to_csv(new_dataset_path,
                    index=False) # TODO: header at false
+
 
 def clean_dataset(null_threshold=1,dataset_path:str="./datasets/sensor-data.csv",
                      new_dataset_path:str="./datasets/sensor_data_cleaned.csv"):
@@ -317,6 +317,8 @@ def clean_dataset(null_threshold=1,dataset_path:str="./datasets/sensor-data.csv"
         print("Columns dropped",col_count)
     df.to_csv(new_dataset_path,
                    index=False) # TODO: header at false
+
+
 
 ## TESTING AREA
 if __name__ == '__main__':
