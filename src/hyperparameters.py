@@ -9,9 +9,9 @@ class Config:
 
     ## Training parameters
     model_type: bool = 'SSF' # . . . . . Whether to use PSF, SSF or FFSF
-    n_epochs: int = 10**1 #. . . . . . . Number of epochs of training
+    n_epochs: int = 10**3 #. . . . . . . Number of epochs of training
     batch_size: int = 32 # . . . . . . . Amount of samples in each batch
-    patience: int = 10**3 #. . . . . . . Patience for the early stopping callback
+    patience: int = 10**4 #. . . . . . . Patience for the early stopping callback
     seed: int = 42 # . . . . . . . . . . Global Seed
 
     lr: float = 0.01 # . . . . . . . . . adam: learning rate
@@ -19,7 +19,7 @@ class Config:
     b2: float = 0.90 # . . . . . . . . . adam: decay of first order momentum of gradient
 
     decay_start: float = 1.0 # . . . . . Starting decay factor for the schedulers
-    decay_end: float   = 0.5 # . . . . . Ending decay factor for the scheduler
+    decay_end: float   = 0.1 # . . . . . Ending decay factor for the scheduler
 
     log_images: int =  1 # . . . . . . . Number of images to log
 
@@ -44,13 +44,13 @@ class Config:
 
 
     ## Network parameters
-    hidden_dim: int = 50 # . . . . . . . Dimension of the hidden layers for the lstm
+    hidden_dim: int = 20 # . . . . . . . Dimension of the hidden layers for the lstm
     num_layers: int = 1 #. . . . . . . . Number of layers for the generator
     lookback: int = 20 # . . . . . . . . Length of the input sequences
     privileged_lookback: int = 100 # . . Length of the privileged lookback
 
 
     ## Testing phase
-    plot_horizon: int = 500 #. . . . . How many samples to plot when testing
+    plot_horizon: int = 2000 #. . . . . How many samples to plot when testing
     alpha: float = 0.1 # . . . . . . . . Parameter for the Anomaly Detector
     h: float = 10 #. . . . . . . . . . . Parameter for the Anomaly Detector
