@@ -9,7 +9,7 @@ class Config:
 
     ## Training parameters
     model_type: bool = 'SSF' # . . . . . Whether to use PSF, SSF or FFSF
-    n_epochs: int = 10**4 #. . . . . . . Number of epochs of training
+    n_epochs: int = 10**1 #. . . . . . . Number of epochs of training
     batch_size: int = 32 # . . . . . . . Amount of samples in each batch
     patience: int = 10**3 #. . . . . . . Patience for the early stopping callback
     seed: int = 42 # . . . . . . . . . . Global Seed
@@ -51,6 +51,6 @@ class Config:
 
 
     ## Testing phase
-    plot_horizon: int = 0 #. . . . . How many samples to plot when testing
+    plot_horizon: int = 500 #. . . . . How many samples to plot when testing
     alpha: float = 0.1 # . . . . . . . . Parameter for the Anomaly Detector
     h: float = 10 #. . . . . . . . . . . Parameter for the Anomaly Detector

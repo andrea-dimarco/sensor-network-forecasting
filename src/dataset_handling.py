@@ -39,11 +39,9 @@ class RealDataset(Dataset):
         self.n_seq: int = int(self.n_samples / lookback)
 
         # transform data
-        scaler = MinMaxScaler(feature_range=(-1,1)) # preserves the data distribution
         xy = xy.reshape(self.n_samples, self.data_dim) # needed when data_dim == 1
-        scaler.fit(xy)
         self.x = torch.from_numpy( # <- (n_samples, data_dim)
-            scaler.transform(xy)
+            xy
             ).type(torch.float32
             )
 
@@ -94,11 +92,9 @@ class PrivilegedDataset(Dataset):
         self.n_samples = xy.shape[0]
 
         # transform data
-        scaler = MinMaxScaler(feature_range=(-1,1)) # preserves the data distribution
         xy = xy.reshape(self.n_samples, self.data_dim) # needed when data_dim == 1
-        scaler.fit(xy)
         self.x = torch.from_numpy( # <- (n_samples, data_dim)
-            scaler.transform(xy)
+            xy
             ).type(torch.float32
             )
 
@@ -343,23 +339,24 @@ if __name__ == '__main__':
     #print(len(dataset))
 
     dataset = pd.read_csv("./datasets/sensor_data_cleaned.csv")
-    dataset = dataset['2']
-    dataset.to_csv(dataset_path, index=False, header=False)
+    dataset = dataset['2']    
+    dataset.values
+    #dataset.to_csv(dataset_path, index=False, header=False)
 
 
-    # # ignore sensors with too many nulls
-    # #
+    # # # ignore sensors with too many nulls
+    # # #
 
-    # # Train & Test
-    train_test_split(X=np.loadtxt(dataset_path, delimiter=",", dtype=np.float32),
-                     split=hparams.train_test_split,
-                     train_file_name=train_dataset_path,
-                     test_file_name=test_dataset_path    
-                     )
+    # # # Train & Test
+    # train_test_split(X=np.loadtxt(dataset_path, delimiter=",", dtype=np.float32),
+    #                  split=hparams.train_test_split,
+    #                  train_file_name=train_dataset_path,
+    #                  test_file_name=test_dataset_path    
+    #                  )
 
-    # Train & Validation
-    train_test_split(X=np.loadtxt(train_dataset_path, delimiter=",", dtype=np.float32),
-                    split=hparams.train_val_split,
-                    train_file_name=train_dataset_path,
-                    test_file_name=val_dataset_path    
-                    )
+    # # Train & Validation
+    # train_test_split(X=np.loadtxt(train_dataset_path, delimiter=",", dtype=np.float32),
+    #                 split=hparams.train_val_split,
+    #                 train_file_name=train_dataset_path,
+    #                 test_file_name=val_dataset_path    
+    #                 )

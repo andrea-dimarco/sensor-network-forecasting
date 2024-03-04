@@ -185,10 +185,13 @@ def validate_model(model:SSF|PSF|FFSF, train_dataset_path:str, test_dataset_path
 
         print("Predictions on testing set done.")
 
-
+        plt.figure(figsize=(50,20),dpi=300)
+        plt.grid(True)
+        plt.minorticks_on()
         # Only plot the first dimension
         if hparams.model_type in ['PSF', 'SSF']:
             plt.plot(dataset_train.get_whole_stream()[:horizon_train,0], c='b')
+            #print(dataset_train.get_whole_stream()[:10])
             plt.plot(synth_plot_train[:horizon_train,0], c='r')
 
             plt.plot(plot_test[dataset_train.n_samples-horizon_test : dataset_train.n_samples+horizon_test,0], c='b')
