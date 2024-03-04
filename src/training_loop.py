@@ -185,9 +185,14 @@ def validate_model(model:SSF|PSF|FFSF, train_dataset_path:str, test_dataset_path
 
         print("Predictions on testing set done.")
 
-        plt.figure(figsize=(50,20),dpi=300)
+        #plt.figure(figsize=(50,20),dpi=300)
         plt.grid(True)
-        plt.minorticks_on()
+        fig,ax = plt.subplots()
+        ax.grid(which = "major", linewidth = 1)
+        ax.grid(which = "minor", linewidth = 0.2)
+        #plt.minorticks_on()
+        fig.set_size_inches(18.5, 10.5)
+        ax.minorticks_on()
         # Only plot the first dimension
         if hparams.model_type in ['PSF', 'SSF']:
             plt.plot(dataset_train.get_whole_stream()[:horizon_train,0], c='b')
@@ -205,7 +210,7 @@ def validate_model(model:SSF|PSF|FFSF, train_dataset_path:str, test_dataset_path
             plt.plot(synth_plot_test[dataset_train.n_samples : dataset_train.n_samples+horizon_test], c='g')
 
         print("Plot done.")
-        plt.savefig(f"img/{hparams.model_type}-{hparams.n_epochs}-e-{hparams.hidden_dim}-hs-{hparams.seed}-seed.png")
+        plt.savefig(f"img/{hparams.model_type}-{hparams.n_epochs}-e-{hparams.hidden_dim}-hs-{hparams.seed}-seed.png",dpi=300)
         plt.show()
 
 
