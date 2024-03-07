@@ -4,9 +4,9 @@ import wandb
 import numpy as np
 import dataset_handling as dh
 import matplotlib.pyplot as plt
-from privileged_model import PSF
-from forecasting_model import SSF
-from feedforward_net import FFSF
+from lightning_modules.psf import PSF
+from lightning_modules.ssf import SSF
+from lightning_modules.ffsf import FFSF
 from hyperparameters import Config
 from pytorch_lightning import Trainer
 from pytorch_lightning.loggers.wandb import WandbLogger
