@@ -16,9 +16,10 @@ from data_generation.wiener_process import multi_dim_wiener_process
 
 class SSF(nn.Module):
     def __init__(self,
-                 data_dim,
-                 hidden_dim,
-                 num_layers=1) -> None:
+                 data_dim:int,
+                 hidden_dim:int,
+                 num_layers:int=1
+                 ) -> None:
         '''
         The Single Sensor Forecasting model.
 
@@ -228,7 +229,9 @@ def train_model(X_train:torch.Tensor,
                 y_train:torch.Tensor,
                 X_val:torch.Tensor,
                 y_val:torch.Tensor,
-                plot_loss:bool=False
+                plot_loss:bool=False,
+                loss_fn=nn.MSELoss(),
+                val_frequency:int=100
                 ):
     '''
     Instanciates and trains the model.
@@ -238,62 +241,72 @@ def train_model(X_train:torch.Tensor,
         - `y_train`: the targets
         - `X_val`: seques for validation
         - `y_val`: targets for validation
+        - `plot_loss`: if to plot the loss or not
+        - `loss_fn`: the loss function to use
+        - `val_frequency`: after how many epochs to run a validation epoch
     '''
     hparams = Config()
     try:
         data_dim = X_train.size()[2]
     except:
         data_dim = 1
-
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    print(f"Using device {device}.")
     input_size = data_dim
     hidden_size = hparams.hidden_dim
     batch_size = hparams.batch_size
     n_epochs = hparams.n_epochs
     num_layers = hparams.num_layers
-    val_frequency = 5
 
-    loss_fn = nn.MSELoss()
     if hparams.model_type == "SSF":
         model = SSF(data_dim=input_size,
                     hidden_dim=hidden_size,
-                    num_layers=num_layers
-                    )
+                    num_layers=num_layers,
+                    ).to(device)
     else:
         raise ValueError
-    optimizer = optim.Adam(model.parameters())
+    optimizer = optim.Adam(model.parameters(),
+                           lr=hparams["lr"],
+                           betas=(hparams["b1"], hparams["b2"])
+                           )
     train_loader = data.DataLoader(data.TensorDataset(X_train, y_train),
                                    shuffle=True,
-                                   batch_size=batch_size)
-    
+                                   batch_size=batch_size
+                                   )
+    # requred for cuda
+    TRAINING_SET = X_train.to(device)
+    TRAINING_TARGETS = y_train.to(device)
+    VALIDATION_SET = X_val.to(device)
+    VALIDATION_TARGETS = y_val.to(device)
+
     print("Begin Training")
     loss_history = []
     for epoch in range(n_epochs):
         # Training step
         model.train()
         for X_batch, y_batch in train_loader:
-            y_pred = model(X_batch)
-            loss = loss_fn(y_pred, y_batch)
+            y_pred = model(X_batch.to(device))
+            loss = loss_fn(y_pred, y_batch.to(device))
             optimizer.zero_grad()
             loss.backward()
             optimizer.step()
-            if plot_loss:
-                loss_history.append(loss.item())
 
         # Validation step
         if epoch % val_frequency == 0:
             model.eval()
             with torch.no_grad():
-                y_pred = model(X_train)
-                train_rmse = np.sqrt(loss_fn(y_pred, y_train))
-                y_pred = model(X_val)
-                test_rmse = np.sqrt(loss_fn(y_pred, y_val))
-            print("Epoch %d/%d: train loss %.4f, val loss %.4f" % (epoch, n_epochs-1, train_rmse, test_rmse))
+                y_pred = model(TRAINING_SET)
+                train_loss = torch.sqrt(loss_fn(y_pred, TRAINING_TARGETS))
+                y_pred = model(VALIDATION_SET)
+                val_loss = torch.sqrt(loss_fn(y_pred, VALIDATION_TARGETS))
+                if plot_loss:
+                    loss_history.append(val_loss.item())
+            print("Epoch %d/%d: train_loss=%.4f, val_loss=%.4f" % (epoch, n_epochs, train_loss, val_loss))
     
-    # plot the loss
+    # Save loss plot
     if plot_loss:
-        plt.plot(loss_history, label="loss")
+        plt.plot(loss_history, label="val_loss")
         plt.savefig(f"img/loss-{n_epochs}-e.png")
-        #plt.show()
 
     # Log the trained model
     torch.save(model.state_dict(), f"./{hparams.model_type}-model.pth")
@@ -340,8 +353,7 @@ if __name__ == '__main__':
     model = train_model(X_train=X_train,
                         y_train=y_train,
                         X_val=X_test,
-                        y_val=y_test,
-                        plot_loss=True
+                        y_val=y_test
                         )
     # TODO: fix this workaround, maybe
     # validate(model=model,

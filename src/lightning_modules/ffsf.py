@@ -68,8 +68,7 @@ class FFSF(pl.LightningModule):
                 nn.ReLU(inplace=True)
             ]
         self.feed = nn.Sequential(*model)
-
-        # TODO: the summary statistics should be given to self.fc or self.feed ??
+        
         self.fc = nn.Linear(in_features=hparams.hidden_dim+self.pi_dim,
                             out_features=hparams.data_dim)
 
@@ -240,7 +239,8 @@ class FFSF(pl.LightningModule):
 
 
     def get_image_examples(self,
-                           real: torch.Tensor, fake: torch.Tensor,
+                           real: torch.Tensor,
+                           fake: torch.Tensor,
                            fake_label:str="Synthetic"):
         '''
         Given real and "fake" translated images, produce a nice coupled images to log

@@ -5,8 +5,7 @@
 - Train on the real dataset
     - compare FFSF and SSF models
     - Why does the validation loss increases?
-    - Try training without lightning
-    - Is there a bug in RealDataset? check lstm-tutorial
+    - Try lr schedulers for Adam
     - Check sensor covariance
     - Predict multiple sensors
 

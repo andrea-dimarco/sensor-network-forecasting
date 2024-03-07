@@ -88,7 +88,12 @@ def train(datasets_folder="./datasets/", hparams:Config=Config()):
     validate_model(model, train_dataset_path, val_dataset_path)#test_dataset_path)
 
 
-def validate_model(model:SSF|PSF|FFSF, train_dataset_path:str, test_dataset_path:str, hparams:Config=Config()) -> None:
+def validate_model(model:SSF|PSF|FFSF,
+                   train_dataset_path:str,
+                   test_dataset_path:str,
+                   hparams:Config=Config(),
+                   lookback:int=Config().lookback
+                   ) -> None:
     '''
     Plots a graph with the predictions on the training set and on the test set.
     '''
@@ -131,7 +136,7 @@ def validate_model(model:SSF|PSF|FFSF, train_dataset_path:str, test_dataset_path
                         ).reshape(-1)
 
         if hparams.model_type in ['SSF', 'PSF']:
-            synth_plot_train[hparams.lookback:] = y_pred[hparams.lookback:]
+            synth_plot_train[lookback:] = y_pred[lookback:]
         elif hparams.model_type == 'FFSF':
             synth_plot_train = y_pred
 
@@ -181,7 +186,7 @@ def validate_model(model:SSF|PSF|FFSF, train_dataset_path:str, test_dataset_path
                         ).reshape(-1)
 
         if hparams.model_type in ['SSF', 'PSF']:
-            synth_plot_test[dataset_train.n_samples+hparams.lookback:] = y_pred[hparams.lookback:]
+            synth_plot_test[dataset_train.n_samples+lookback:] = y_pred[lookback:]
         elif hparams.model_type == 'FFSF':
             synth_plot_test[dataset_train.n_samples:] = y_pred
 
