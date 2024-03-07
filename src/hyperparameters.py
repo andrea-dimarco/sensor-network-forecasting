@@ -9,7 +9,7 @@ class Config:
 
     ## Training parameters
     model_type: bool = 'SSF' # . . . . . Whether to use PSF, SSF or FFSF
-    n_epochs: int = 10**0 #. . . . . . . Number of epochs of training
+    n_epochs: int = 10**1 #. . . . . . . Number of epochs of training
     batch_size: int = 32 # . . . . . . . Amount of samples in each batch
     patience: int = 10**4 #. . . . . . . Patience for the early stopping callback
     seed: int = 42 # . . . . . . . . . . Global Seed

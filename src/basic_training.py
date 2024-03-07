@@ -14,6 +14,109 @@ from hyperparameters import Config
 from data_generation.wiener_process import multi_dim_wiener_process
 
 
+class SSF(nn.Module):
+    def __init__(self,
+                 data_dim,
+                 hidden_dim,
+                 num_layers=1) -> None:
+        '''
+        The Single Sensor Forecasting model.
+
+        Arguments:
+            - `data_dim`: dimension of the single sample 
+            - `hidden_dim`: hidden dimension
+            - `num_layers`: number of lstm layers
+        '''
+        super().__init__()
+        assert(data_dim > 0)
+        assert(hidden_dim > 0)
+        assert(num_layers > 0)
+
+        # Initialize Modules
+        # input = ( batch_size, lookback, data_dim )
+        self.lstm = nn.LSTM(input_size=data_dim,
+                            hidden_size=hidden_dim,
+                            num_layers=num_layers,
+                            batch_first=True
+                            )
+        self.fc = nn.Linear(in_features=hidden_dim,
+                            out_features=data_dim
+                            )
+    
+    def forward(self, x:torch.Tensor) -> torch.Tensor:
+        '''
+        Takes the noise and generates a batch of sequences
+
+        Arguments:
+            - `x`: input of the forward pass with shape [batch, lookback, data_dim]
+
+        Returns:
+            - the predicted sequences [batch, lookback, data_dim]
+        '''
+        x, _ = self.lstm(x)
+        x = self.fc(x)
+        return x
+    
+
+class FFSF(nn.Module):
+    def __init__(self,
+                 data_dim:int,
+                 hidden_dim:int,
+                 lookback:int,
+                 num_layers:int=1) -> None:
+        '''
+        The Single Sensor Forecasting model.
+
+        Arguments:
+            - `data_dim`: dimension of the single sample 
+            - `hidden_dim`: hidden dimension
+            - `num_layers`: number of linear layers
+            - `lookback`: how many backward steps to look
+        '''
+        super().__init__()
+        assert(data_dim > 0)
+        assert(hidden_dim > 0)
+        assert(num_layers > 0)
+        assert(lookback > 0)
+
+        self.pi_dim = data_dim*4
+        # Initialize Modules
+        # input = ( batch_size, lookback*data_dim )
+        model = [
+            nn.Linear(in_features=lookback*data_dim, out_features=hidden_dim),
+            nn.ReLU(inplace=True)
+        ]
+        for i in range(num_layers-1):
+            model += [
+                nn.Linear(in_features=hidden_dim, out_features=hidden_dim),
+                nn.ReLU(inplace=True)
+            ]
+        self.feed = nn.Sequential(*model)
+
+        self.fc = nn.Linear(in_features=hidden_dim+self.pi_dim,
+                            out_features=data_dim)
+    
+    def forward(self, x:torch.Tensor, p:torch.Tensor) -> torch.Tensor:
+        '''
+        Takes the noise and generates a batch of sequences
+
+        Arguments:
+            - `x`: input of the forward pass with shape [batch, lookback, data_dim]
+
+        Returns:
+            - the predicted sequences [batch, lookback, data_dim]
+        '''
+        # x    = (batch, lookback*data)
+        x = self.feed(x)
+        # x   = (batch, hidden)
+        # p   = (batch, 4)
+        x = torch.cat((x,p), dim=1)
+        # x   = (batch, hidden+4)
+        x = self.fc(x)
+        # x   = (batch, data)
+        return x
+
+
 def create_dataset(dataset, lookback:int):
     """
     Transform a time series into a prediction dataset
@@ -98,60 +201,23 @@ def get_data(verbose=True):
         print(f"Testing Features: {X_test.size()}, Testing Targets {y_test.size()}")
         print(f"Shape: ( num_sequences, lookback, data_dim )")
 
-    return dataset, X_train, y_train, X_test, y_test
+    return X_train, y_train, X_test, y_test
 
-
-class SSF(nn.Module):
-    def __init__(self,
-                 data_dim,
-                 hidden_dim,
-                 num_layers=1) -> None:
-        '''
-        The Single Sensor Forecasting model.
-
-        Arguments:
-            - `data_dim`: dimension of the single sample 
-            - `hidden_dim`: hidden dimension
-            - `num_layers`: number of lstm layers
-        '''
-        super().__init__()
-        assert(data_dim > 0)
-        assert(hidden_dim > 0)
-        assert(num_layers > 0)
-
-        # Initialize Modules
-        # input = ( batch_size, lookback, data_dim )
-        self.lstm = nn.LSTM(input_size=data_dim,
-                            hidden_size=hidden_dim,
-                            num_layers=num_layers,
-                            batch_first=True
-                            )
-        self.fc = nn.Linear(in_features=hidden_dim,
-                            out_features=data_dim
-                            )
-    
-    def forward(self, x:torch.Tensor) -> torch.Tensor:
-        '''
-        Takes the noise and generates a batch of sequences
-
-        Arguments:
-            - `x`: input of the forward pass with shape [batch, lookback, data_dim]
-
-        Returns:
-            - the predicted sequences [batch, lookback, data_dim]
-        '''
-        x, _ = self.lstm(x)
-        x = self.fc(x)
-        return x
-    
 
 def train_model(X_train:torch.Tensor,
                 y_train:torch.Tensor,
                 X_val:torch.Tensor,
-                y_val:torch.Tensor
+                y_val:torch.Tensor,
+                plot_loss:bool=False
                 ):
     '''
     Instanciates and trains the model.
+
+    Arguments:
+        - `X_train`: train Tensor [n_sequences, lookback, data_dim]
+        - `y_train`: the targets
+        - `X_val`: seques for validation
+        - `y_val`: targets for validation
     '''
     hparams = Config()
     try:
@@ -164,21 +230,25 @@ def train_model(X_train:torch.Tensor,
     batch_size = hparams.batch_size
     n_epochs = hparams.n_epochs
     num_layers = hparams.num_layers
-    val_frequency = 3
+    val_frequency = 5
 
     loss_fn = nn.L1Loss()
-    model = SSF(data_dim=input_size,
-                hidden_dim=hidden_size,
-                num_layers=num_layers
-                )
+    if hparams.model_type == "SSF":
+        model = SSF(data_dim=input_size,
+                    hidden_dim=hidden_size,
+                    num_layers=num_layers
+                    )
+    else:
+        raise ValueError
     optimizer = optim.Adam(model.parameters())
     train_loader = data.DataLoader(data.TensorDataset(X_train, y_train),
                                    shuffle=True,
                                    batch_size=batch_size)
     
     print("Begin Training")
-
+    loss_history = []
     for epoch in range(n_epochs):
+        # Training step
         model.train()
         for X_batch, y_batch in train_loader:
             y_pred = model(X_batch)
@@ -186,18 +256,25 @@ def train_model(X_train:torch.Tensor,
             optimizer.zero_grad()
             loss.backward()
             optimizer.step()
+            if plot_loss:
+                loss_history.append(loss.item())
 
         # Validation step
-        if epoch % val_frequency != 0:
-            continue
-        model.eval()
-        with torch.no_grad():
-            y_pred = model(X_train)
-            train_rmse = np.sqrt(loss_fn(y_pred, y_train))
-            y_pred = model(X_val)
-            test_rmse = np.sqrt(loss_fn(y_pred, y_val))
-        print("Epoch %d/%d: train RMSE %.4f, val RMSE %.4f" % (epoch, n_epochs-1, train_rmse, test_rmse))
+        if epoch % val_frequency == 0:
+            model.eval()
+            with torch.no_grad():
+                y_pred = model(X_train)
+                train_rmse = np.sqrt(loss_fn(y_pred, y_train))
+                y_pred = model(X_val)
+                test_rmse = np.sqrt(loss_fn(y_pred, y_val))
+            print("Epoch %d/%d: train loss %.4f, val loss %.4f" % (epoch, n_epochs-1, train_rmse, test_rmse))
     
+    # plot the loss
+    if plot_loss:
+        plt.plot(loss_history, label="loss")
+        plt.savefig(f"img/loss-{n_epochs}-e.png")
+        #plt.show()
+
     # Log the trained model
     torch.save(model.state_dict(), f"./{hparams.model_type}-model.pth")
     return model
@@ -222,9 +299,7 @@ def validate(model,
     with torch.no_grad():
         # shift train predictions for plotting
         train_plot = np.ones((dataset_size, data_dim)) * np.nan
-        print("X_TRAIN SHAPE:", X_train.shape)
         y_pred_train = model(X_train)[:-1:]
-        print("Y_PRED SHAPE:", y_pred_train.shape)
         train_plot[lookback:train_size] = y_pred_train
 
         # shift test predictions for plotting
@@ -235,20 +310,19 @@ def validate(model,
     plt.plot(dataset, c='b')
     plt.plot(train_plot, c='r')
     plt.plot(test_plot, c='g')
-    plt.savefig(f"./{hparams.model_type}-{hparams.n_epochs}-e-{hparams.hidden_dim}-hs-{hparams.seed}-seed.png",dpi=300)
+    plt.savefig(f"img/{hparams.model_type}-{hparams.n_epochs}-e-{hparams.hidden_dim}-hs-{hparams.seed}-seed.png",dpi=300)
     plt.show()
-
 
 
 if __name__ == '__main__':
     set_seed(42)
-    dataset, X_train, y_train, X_test, y_test = get_data()
+    X_train, y_train, X_test, y_test = get_data()
     model = train_model(X_train=X_train,
                         y_train=y_train,
                         X_val=X_test,
-                        y_val=y_test
+                        y_val=y_test,
+                        plot_loss=True
                         )
-
     # TODO: fix this workaround, maybe
     # validate(model=model,
     #          dataset=dataset,
@@ -258,15 +332,20 @@ if __name__ == '__main__':
     from lightning_training import validate_model
     hparams = Config()
     datasets_folder = "./datasets/"
+    # free up memory
+    del X_train, y_train, X_test, y_test 
+
+    # dataset path
     if hparams.dataset_name in ['sine', 'wien', 'iid', 'cov']:
         train_dataset_path = f"{datasets_folder}{hparams.dataset_name}_training.csv"
         test_dataset_path  = f"{datasets_folder}{hparams.dataset_name}_testing.csv"
-
     elif hparams.dataset_name == 'real':
         train_dataset_path = str(datasets_folder) + hparams.train_file_name
         test_dataset_path = str(datasets_folder) + hparams.test_file_name
     else:
         raise ValueError("Dataset not supported.")
+    
+    # plot graph
     validate_model(model=model,
                    train_dataset_path=train_dataset_path,
                    test_dataset_path=test_dataset_path

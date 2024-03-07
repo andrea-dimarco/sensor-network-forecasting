@@ -7,6 +7,7 @@ from pathlib import Path
 from sklearn.preprocessing import MinMaxScaler
 import torch
 import pandas as pd
+from hyperparameters import Config
 
 import numpy as np
     
@@ -23,7 +24,6 @@ class RealDataset(Dataset):
         Arguments:
             - `file_path`: the path of the file containing the data stream
             - `lookback`: length of the sequence to extract from the data stream
-            - `transform`: optional transformation to be done on the data
         '''
         super().__init__()
 
@@ -76,6 +76,8 @@ class PrivilegedDataset(Dataset):
         Arguments:
             - `file_path`: the path of the file containing the data stream
             - `lookback`: length of the sequence to extract from the data stream
+            - `privileged_lookback`: lenght of the sequence from which to compute the summary statistics
+            - `verbose`: if to print informations
         '''
         super().__init__()
 
@@ -242,7 +244,11 @@ class FeedDataset(Dataset):
         return pi
 
 
-def train_test_split(X, split: float=0.7, train_file_name: str="./datasets/training.csv", test_file_name: str="./datasets/testing.csv"):
+def train_test_split(X,
+                     split:float=0.7,
+                     train_file_name:str="./datasets/training.csv",
+                     test_file_name: str="./datasets/testing.csv"
+                     ):
     '''
     This function takes a tensor and saves it as two different csv files according to the given split parameter.
 
@@ -268,6 +274,10 @@ def refactor_dataset(dataset_path:str="./datasets/data857489168.csv",
                      new_dataset_path:str="./datasets/sensor-data.csv"):
     '''
     Refactors the dataset to be compatible with numpy.
+
+    Arguments:
+        - `dataset_path`: the path to the original dataset
+        - `new_dataset_path`: where to save the refactored csv file
     '''
     dataset = pd.read_csv(dataset_path)
     
@@ -315,38 +325,26 @@ def clean_dataset(null_threshold=1,dataset_path:str="./datasets/sensor-data.csv"
                    index=False) # TODO: header at false
 
 
+def select_sensor(sensor=2, hparams:Config=Config(), do_validation:bool=False):
+    '''
+    Saves a csv with only the realizations of the chosen sensor.
 
-## TESTING AREA
-if __name__ == '__main__':
-    from hyperparameters import Config
-    import utilities as ut
-
-    # must have the original dataset, change the headers and strip all NULLs and spaces!
-    #refactor_dataset()
-    #clean_dataset()
-    hparams = Config()
-    sensor = 2
+    Arguments:
+        - `sensor`: the sensor to isolate
+        - `do_validation`: if to further split the training set into a validation set
+        - `hparams`: hyperparameters
+    '''
     dataset_path = f"./datasets/sensor_data_{sensor}.csv"
     train_dataset_path = f"./datasets/{hparams.train_file_name}"
     val_dataset_path   = f"./datasets/{hparams.val_file_name}"
     test_dataset_path  = f"./datasets/{hparams.test_file_name}"
 
-    # train_path, val_path, test_path = ut.generate_data()
-    # dataset = FeedDataset(file_path=train_path,
-    #                       lookback=hparams.lookback,
-    #                       privileged_lookback=hparams.privileged_lookback
-    #                       )
-
-    #print(len(dataset))
-
     dataset = pd.read_csv("./datasets/sensor_data_cleaned.csv")
-    dataset = dataset[str(sensor)]    
-    dataset.values
+    try:
+        dataset = dataset[str(sensor)]
+    except:
+        raise ValueError
     dataset.to_csv(dataset_path, index=False, header=False)
-
-
-    # # # ignore sensors with too many nulls
-    # # #
 
     # Train & Test
     train_test_split(X=np.loadtxt(dataset_path, delimiter=",", dtype=np.float32),
@@ -356,8 +354,19 @@ if __name__ == '__main__':
                      )
 
     # Train & Validation
-    # train_test_split(X=np.loadtxt(train_dataset_path, delimiter=",", dtype=np.float32),
-    #                 split=hparams.train_val_split,
-    #                 train_file_name=train_dataset_path,
-    #                 test_file_name=val_dataset_path    
-    #                 )
+    if do_validation:
+        train_test_split(X=np.loadtxt(train_dataset_path, delimiter=",", dtype=np.float32),
+                        split=hparams.train_val_split,
+                        train_file_name=train_dataset_path,
+                        test_file_name=val_dataset_path    
+                        )
+        print(f"Sensor {sensor} data saved in files:\n\t- {train_dataset_path}\n\t- {val_dataset_path}\n\t- {test_dataset_path}")
+    else:
+        print(f"Sensor {sensor} data saved in files:\n\t- {train_dataset_path}\n\t- {test_dataset_path}")
+
+
+## TESTING AREA
+if __name__ == '__main__':
+    #refactor_dataset()
+    #clean_dataset()
+    select_sensor(sensor=2, do_validation=False)
