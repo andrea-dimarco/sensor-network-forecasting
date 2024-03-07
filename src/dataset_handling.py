@@ -325,7 +325,8 @@ if __name__ == '__main__':
     #refactor_dataset()
     #clean_dataset()
     hparams = Config()
-    dataset_path = "./datasets/sensor_data_992.csv"
+    sensor = 2
+    dataset_path = f"./datasets/sensor_data_{sensor}.csv"
     train_dataset_path = f"./datasets/{hparams.train_file_name}"
     val_dataset_path   = f"./datasets/{hparams.val_file_name}"
     test_dataset_path  = f"./datasets/{hparams.test_file_name}"
@@ -339,7 +340,7 @@ if __name__ == '__main__':
     #print(len(dataset))
 
     dataset = pd.read_csv("./datasets/sensor_data_cleaned.csv")
-    dataset = dataset['992']    
+    dataset = dataset[str(sensor)]    
     dataset.values
     dataset.to_csv(dataset_path, index=False, header=False)
 
@@ -355,8 +356,8 @@ if __name__ == '__main__':
                      )
 
     # Train & Validation
-    train_test_split(X=np.loadtxt(train_dataset_path, delimiter=",", dtype=np.float32),
-                    split=hparams.train_val_split,
-                    train_file_name=train_dataset_path,
-                    test_file_name=val_dataset_path    
-                    )
+    # train_test_split(X=np.loadtxt(train_dataset_path, delimiter=",", dtype=np.float32),
+    #                 split=hparams.train_val_split,
+    #                 train_file_name=train_dataset_path,
+    #                 test_file_name=val_dataset_path    
+    #                 )

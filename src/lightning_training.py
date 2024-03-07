@@ -17,7 +17,9 @@ warnings.filterwarnings("ignore")
 
 
 def train(datasets_folder="./datasets/", hparams:Config=Config()):
-
+    '''
+    Allocate and Train the model.
+    '''
     torch.multiprocessing.set_sharing_strategy('file_system')
 
     if hparams.dataset_name in ['sine', 'wien', 'iid', 'cov']:

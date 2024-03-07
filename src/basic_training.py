@@ -14,9 +14,6 @@ from hyperparameters import Config
 from data_generation.wiener_process import multi_dim_wiener_process
 
 
-'''
-Utility
-'''
 def create_dataset(dataset, lookback:int):
     """
     Transform a time series into a prediction dataset
@@ -52,9 +49,6 @@ def set_seed(seed=0):
     _ = pl.seed_everything(seed)
 
 
-'''
-Dataset Generation
-'''
 def get_data(verbose=True):
     '''
     Gets and returns the datasets as torch.Tensors
@@ -68,7 +62,7 @@ def get_data(verbose=True):
         dataset = multi_dim_wiener_process(p=hparams.data_dim, N=hparams.num_samples)
 
     elif dataset_name == 'real':
-        dataset_path = "./datasets/sensor_data_2.csv"#"./datasets/sensor_data_cleaned.csv"
+        dataset_path = "./datasets/sensor_data_2.csv"
         dataset = np.loadtxt(dataset_path, delimiter=",", dtype=np.float32)
         n_samples = dataset.shape[0]
 
@@ -104,28 +98,7 @@ def get_data(verbose=True):
         print(f"Testing Features: {X_test.size()}, Testing Targets {y_test.size()}")
         print(f"Shape: ( num_sequences, lookback, data_dim )")
 
-    return X_train, y_train, X_test, y_test
-
-
-
-'''
-Define Models
-'''
-class Forecaster(nn.Module):
-    def __init__(self, input_size, hidden_size, output_size,
-                 num_layers=1):
-        super().__init__()
-        self.lstm = nn.LSTM(input_size=input_size,
-                            hidden_size=hidden_size,
-                            num_layers=num_layers,
-                            batch_first=True)
-        self.linear = nn.Linear(hidden_size,
-                                output_size)
-        
-    def forward(self, x):
-        x, _ = self.lstm(x)
-        x = self.linear(x)
-        return x
+    return dataset, X_train, y_train, X_test, y_test
 
 
 class SSF(nn.Module):
@@ -182,7 +155,7 @@ def train_model(X_train:torch.Tensor,
     '''
     hparams = Config()
     try:
-        data_dim = X_train.size()[1]
+        data_dim = X_train.size()[2]
     except:
         data_dim = 1
 
@@ -231,6 +204,7 @@ def train_model(X_train:torch.Tensor,
 
 
 def validate(model,
+             dataset:torch.Tensor,
              X_train:torch.Tensor,
              X_test:torch.Tensor
              ):
@@ -242,13 +216,15 @@ def validate(model,
     lookback = hparams.lookback
     train_size = X_train.size()[0]
     test_size = X_test.size()[0]
-    dataset_size = train_size + test_size
+    dataset_size = dataset.size()[0]
     data_dim = X_test.size()[2]
+
     with torch.no_grad():
         # shift train predictions for plotting
         train_plot = np.ones((dataset_size, data_dim)) * np.nan
-        print("TRAIN PLOT SHAPE:", train_plot.shape)
+        print("X_TRAIN SHAPE:", X_train.shape)
         y_pred_train = model(X_train)[:-1:]
+        print("Y_PRED SHAPE:", y_pred_train.shape)
         train_plot[lookback:train_size] = y_pred_train
 
         # shift test predictions for plotting
@@ -256,27 +232,44 @@ def validate(model,
         y_pred_test = model(X_test)[:-1:]
         test_plot[train_size+lookback:dataset_size] = y_pred_test
     # plot
-    plt.plot(torch.cat((X_train.reshape(-1,data_dim), X_test.reshape(-1,data_dim)), dim=0), c='b')
+    plt.plot(dataset, c='b')
     plt.plot(train_plot, c='r')
     plt.plot(test_plot, c='g')
-    plt.savefig(f"img/{hparams.model_type}-{hparams.n_epochs}-e-{hparams.hidden_dim}-hs-{hparams.seed}-seed.png",dpi=300)
+    plt.savefig(f"./{hparams.model_type}-{hparams.n_epochs}-e-{hparams.hidden_dim}-hs-{hparams.seed}-seed.png",dpi=300)
     plt.show()
 
 
 
 if __name__ == '__main__':
     set_seed(42)
-    X_train, y_train, X_test, y_test = get_data()
+    dataset, X_train, y_train, X_test, y_test = get_data()
     model = train_model(X_train=X_train,
                         y_train=y_train,
                         X_val=X_test,
                         y_val=y_test
                         )
-    
-    # TODO: fix this
-    validate(model=model,
-             X_train=X_train,
-             X_test=X_test
-             )
+
+    # TODO: fix this workaround, maybe
+    # validate(model=model,
+    #          dataset=dataset,
+    #          X_train=X_train,
+    #          X_test=X_test
+    #          )
+    from lightning_training import validate_model
+    hparams = Config()
+    datasets_folder = "./datasets/"
+    if hparams.dataset_name in ['sine', 'wien', 'iid', 'cov']:
+        train_dataset_path = f"{datasets_folder}{hparams.dataset_name}_training.csv"
+        test_dataset_path  = f"{datasets_folder}{hparams.dataset_name}_testing.csv"
+
+    elif hparams.dataset_name == 'real':
+        train_dataset_path = str(datasets_folder) + hparams.train_file_name
+        test_dataset_path = str(datasets_folder) + hparams.test_file_name
+    else:
+        raise ValueError("Dataset not supported.")
+    validate_model(model=model,
+                   train_dataset_path=train_dataset_path,
+                   test_dataset_path=test_dataset_path
+                   )
 
     

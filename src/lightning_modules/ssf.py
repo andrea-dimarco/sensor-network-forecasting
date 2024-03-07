@@ -10,12 +10,10 @@ from torch.utils.data import DataLoader
 
 import torch
 import torch.nn as nn
-from torch import optim
 
 import wandb
 import pytorch_lightning as pl
 
-# My modules
 import dataset_handling as dh
 import utilities as ut
 from hyperparameters import Config
