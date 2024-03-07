@@ -42,6 +42,13 @@ class SSF(nn.Module):
         self.fc = nn.Linear(in_features=hidden_dim,
                             out_features=data_dim
                             )
+        
+        # init weights
+        self.fc.apply(init_weights)
+        for layer_p in self.lstm._all_weights:
+            for p in layer_p:
+                if 'weight' in p:
+                    nn.init.xavier_uniform_(self.lstm.__getattr__(p))
     
     def forward(self, x:torch.Tensor) -> torch.Tensor:
         '''
@@ -92,9 +99,12 @@ class FFSF(nn.Module):
                 nn.ReLU(inplace=True)
             ]
         self.feed = nn.Sequential(*model)
-
         self.fc = nn.Linear(in_features=hidden_dim+self.pi_dim,
                             out_features=data_dim)
+        
+        # init weights
+        self.feed.apply(init_weights)
+        self.fc.apply(init_weights)
     
     def forward(self, x:torch.Tensor, p:torch.Tensor) -> torch.Tensor:
         '''
@@ -115,6 +125,16 @@ class FFSF(nn.Module):
         x = self.fc(x)
         # x   = (batch, data)
         return x
+
+
+def init_weights(m):
+    '''
+    Initialized the weights of the nn.Sequential block
+    '''
+    if isinstance(m, nn.Linear):
+        nn.init.xavier_uniform_(m.weight)
+        if hasattr(m, "bias") and m.bias is not None:
+            nn.init.zeros_(m.bias)
 
 
 def create_dataset(dataset, lookback:int):
@@ -232,7 +252,7 @@ def train_model(X_train:torch.Tensor,
     num_layers = hparams.num_layers
     val_frequency = 5
 
-    loss_fn = nn.L1Loss()
+    loss_fn = nn.MSELoss()
     if hparams.model_type == "SSF":
         model = SSF(data_dim=input_size,
                     hidden_dim=hidden_size,

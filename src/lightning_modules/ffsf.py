@@ -1,24 +1,16 @@
 
-
-# Libraries
-from typing import Sequence, List, Dict, Tuple, Union, Mapping
-
-from dataclasses import asdict
-from pathlib import Path
-
-from torch.utils.data import DataLoader
-
 import torch
-import torch.nn as nn
-from torch import optim
-
 import wandb
-import pytorch_lightning as pl
-
-# My modules
-import dataset_handling as dh
+import torch.nn as nn
 import utilities as ut
+from torch import optim
+from pathlib import Path
+import dataset_handling as dh
+import pytorch_lightning as pl
+from dataclasses import asdict
 from hyperparameters import Config
+from torch.utils.data import DataLoader
+from typing import Sequence, List, Dict, Tuple, Union, Mapping
 
 '''
 Feed Forward Sensor Forecasting

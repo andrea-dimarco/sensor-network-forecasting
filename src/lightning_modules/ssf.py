@@ -1,22 +1,17 @@
 
 
 # Libraries
-from typing import Sequence, List, Dict, Tuple, Union, Mapping
-
-from dataclasses import asdict
-from pathlib import Path
-
-from torch.utils.data import DataLoader
-
+import wandb
 import torch
 import torch.nn as nn
-
-import wandb
-import pytorch_lightning as pl
-
-import dataset_handling as dh
 import utilities as ut
+from pathlib import Path
+import dataset_handling as dh
+import pytorch_lightning as pl
+from dataclasses import asdict
 from hyperparameters import Config
+from torch.utils.data import DataLoader
+from typing import Sequence, List, Dict, Tuple, Union, Mapping
 
 '''
 Single Sensor Forecasting
