@@ -42,21 +42,21 @@ def train(datasets_folder="./datasets/", hparams:Config=Config()):
     if hparams.model_type == 'FFSF':
         model = FFSF(hparams=hparams,
                         train_file_path=train_dataset_path,
-                        val_file_path=val_dataset_path,
+                        val_file_path=test_dataset_path,
                         data_dim=data_dim,
                         plot_losses=False
                         )
     elif hparams.model_type == 'PSF':
         model = PSF(hparams=hparams,
                         train_file_path=train_dataset_path,
-                        val_file_path=val_dataset_path,
+                        val_file_path=test_dataset_path,
                         data_dim=data_dim,
                         plot_losses=False
                         )
     elif hparams.model_type == 'SSF':
         model = SSF(hparams=hparams,
                         train_file_path=train_dataset_path,
-                        val_file_path=val_dataset_path,
+                        val_file_path=test_dataset_path,
                         data_dim=data_dim,
                         plot_losses=False
                         )
@@ -104,40 +104,39 @@ def validate_model(model:SSF|PSF|FFSF,
         # On the TRAINING set
         if hparams.model_type == 'FFSF':
             dataset_train = dh.FeedDataset(file_path=train_dataset_path,
-                                        lookback=hparams.lookback,
-                                        privileged_lookback=hparams.privileged_lookback
-                                        )
+                                           lookback=hparams.lookback,
+                                           privileged_lookback=hparams.privileged_lookback
+                                           )
         elif hparams.model_type == 'PSF':
             dataset_train = dh.PrivilegedDataset(file_path=train_dataset_path,
-                                        lookback=hparams.lookback,
-                                        privileged_lookback=hparams.privileged_lookback
-                                        )
+                                                 lookback=hparams.lookback,
+                                                 privileged_lookback=hparams.privileged_lookback
+                                                 )
         elif hparams.model_type == 'SSF':
             dataset_train = dh.RealDataset(file_path=train_dataset_path,
-                                    lookback=hparams.lookback
-                                    )
+                                           lookback=hparams.lookback
+                                           )
         else:
             raise ValueError
-        horizon_train = min(int(hparams.plot_horizon/2), dataset_train.n_samples)
         print("Loaded training dataset.")
-
+        
+        horizon_train = min(int(hparams.plot_horizon/2), dataset_train.n_samples)
         synth_plot_train = np.ones((dataset_train.n_samples, dataset_train.data_dim)) * np.nan
 
         if hparams.model_type == 'PSF':
             y_pred = model(dataset_train.get_all_sequences(), dataset_train.get_all_pi()
-                        ).reshape(-1,hparams.data_dim)
-            
+                        ).reshape(-1,dataset_train.data_dim)
         elif hparams.model_type == 'SSF':
             y_pred = model(dataset_train.get_all_sequences()
-                        ).reshape(-1,hparams.data_dim)
-
+                        ).reshape(-1,dataset_train.data_dim)
         elif hparams.model_type == "FFSF":
             y_pred = model(dataset_train.get_all_sequences(), dataset_train.get_all_pi()
-                        ).reshape(-1)
+                        ).reshape(-1, dataset_train.data_dim)
 
         if hparams.model_type in ['SSF', 'PSF']:
             synth_plot_train[lookback:] = y_pred[lookback:]
         elif hparams.model_type == 'FFSF':
+            print("y_pred:", y_pred.shape)
             synth_plot_train = y_pred
 
         print("Predictions on training set done.")
@@ -160,30 +159,30 @@ def validate_model(model:SSF|PSF|FFSF,
                                     )
         else:
             raise ValueError
-        horizon_test = min(int(hparams.plot_horizon/2), dataset_test.n_samples)
         print("Loaded testing dataset.")
-        
+
+        horizon_test = min(int(hparams.plot_horizon/2), dataset_test.n_samples)
         synth_plot_test = np.ones((dataset_train.n_samples+dataset_test.n_samples, dataset_test.data_dim)) * np.nan
-        
         plot_test = np.ones((dataset_train.n_samples+dataset_test.n_samples, dataset_test.data_dim)) * np.nan
+
         if hparams.model_type == 'FFSF':
-            plot_test = plot_test.reshape(-1)
+            plot_test = plot_test.reshape(-1, dataset_test.data_dim)
             plot_test[dataset_train.n_samples:] = dataset_test.get_all_targets()
-            synth_plot_test = synth_plot_test.reshape(-1)
+            synth_plot_test = synth_plot_test.reshape(-1, dataset_test.data_dim)
         else:
             plot_test[dataset_train.n_samples:] = dataset_test.get_whole_stream()
 
         if hparams.model_type == 'PSF':
             y_pred = model(dataset_test.get_all_sequences(), dataset_test.get_all_pi()
-                        ).reshape(-1,hparams.data_dim)
+                        ).reshape(-1,dataset_train.data_dim)
             
         elif hparams.model_type == 'SSF':
             y_pred = model(dataset_test.get_all_sequences()
-                        ).reshape(-1,hparams.data_dim)
+                        ).reshape(-1,dataset_train.data_dim)
 
         elif hparams.model_type == "FFSF":
             y_pred = model(dataset_test.get_all_sequences(), dataset_test.get_all_pi()
-                        ).reshape(-1)
+                        ).reshape(-1, dataset_test.data_dim)
 
         if hparams.model_type in ['SSF', 'PSF']:
             synth_plot_test[dataset_train.n_samples+lookback:] = y_pred[lookback:]
@@ -201,20 +200,11 @@ def validate_model(model:SSF|PSF|FFSF,
         fig.set_size_inches(18.5, 10.5)
         ax.minorticks_on()
         # Only plot the first dimension
-        if hparams.model_type in ['PSF', 'SSF']:
-            plt.plot(dataset_train.get_whole_stream()[:horizon_train,0], c='b')
-            #print(dataset_train.get_whole_stream()[:10])
-            plt.plot(synth_plot_train[:horizon_train,0], c='r')
+        plt.plot(dataset_train.get_whole_stream()[:horizon_train,0], c='b')
+        plt.plot(synth_plot_train[:horizon_train,0], c='r')
 
-            plt.plot(plot_test[dataset_train.n_samples-horizon_test : dataset_train.n_samples+horizon_test,0], c='b')
-            plt.plot(synth_plot_test[dataset_train.n_samples-horizon_test : dataset_train.n_samples+horizon_test,0], c='g')
-
-        else:
-            plt.plot(dataset_train.get_all_targets()[:horizon_train], c='b')
-            plt.plot(synth_plot_train[:horizon_train], c='r')
-
-            plt.plot(plot_test[dataset_train.n_samples : dataset_train.n_samples+horizon_test], c='b')
-            plt.plot(synth_plot_test[dataset_train.n_samples : dataset_train.n_samples+horizon_test], c='g')
+        plt.plot(plot_test[dataset_train.n_samples-horizon_test : dataset_train.n_samples+horizon_test,0], c='b')
+        plt.plot(synth_plot_test[dataset_train.n_samples-horizon_test : dataset_train.n_samples+horizon_test,0], c='g')
 
         print("Plot done.")
         plt.savefig(f"img/{hparams.model_type}-{hparams.n_epochs}-e-{hparams.hidden_dim}-hs-{hparams.seed}-seed.png",dpi=300)

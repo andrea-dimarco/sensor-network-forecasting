@@ -124,7 +124,7 @@ def get_data(verbose=True):
         dataset = multi_dim_wiener_process(p=hparams.data_dim, N=hparams.num_samples)
 
     elif dataset_name == 'real':
-        dataset_path = "./datasets/sensor_data_2.csv"
+        dataset_path = "./datasets/sensor_data_multi.csv"
         dataset = np.loadtxt(dataset_path, delimiter=",", dtype=np.float32)
         n_samples = dataset.shape[0]
 

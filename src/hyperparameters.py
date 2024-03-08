@@ -8,10 +8,10 @@ from dataclasses import dataclass
 class Config:
 
     ## Training parameters
-    model_type: bool = 'FFSF' # . . . . . Whether to use PSF, SSF or FFSF
-    n_epochs: int = 10**1 #. . . . . . . Number of epochs of training
+    model_type: bool = 'SSF' # . . . . . Whether to use PSF, SSF or FFSF
+    n_epochs: int = 10**4 #. . . . . . . Number of epochs of training
     seed: int = 42 # . . . . . . . . . . Global Seed
-    batch_size: int = 32 # . . . . . . . Amount of samples in each batch
+    batch_size: int = 64 # . . . . . . . Amount of samples in each batch
 
     lr: float = 0.01 # . . . . . . . . . adam: learning rate
     b1: float = 0.75 # . . . . . . . . . adam: decay of first order momentum of gradient
@@ -45,7 +45,7 @@ class Config:
 
 
     ## Network parameters
-    hidden_dim: int = 20 # . . . . . . . Dimension of the hidden layers for the lstm
+    hidden_dim: int = 50 # . . . . . . . Dimension of the hidden layers for the lstm
     num_layers: int = 1 #. . . . . . . . Number of layers for the generator
     lookback: int = 20 # . . . . . . . . Length of the input sequences
     privileged_lookback: int = 100 # . . Length of the privileged lookback

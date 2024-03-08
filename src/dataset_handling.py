@@ -4,7 +4,6 @@ This is the data module for the model
 from typing import Tuple
 from torch.utils.data import Dataset
 from pathlib import Path
-from sklearn.preprocessing import MinMaxScaler
 import torch
 import pandas as pd
 from hyperparameters import Config
@@ -181,15 +180,11 @@ class FeedDataset(Dataset):
         self.n_samples = xy.shape[0]
 
         # transform data
-        scaler = MinMaxScaler(feature_range=(-1,1)) # preserves the data distribution
         xy = xy.reshape(self.n_samples, self.data_dim) # needed when data_dim == 1
-        scaler.fit(xy)
         self.x = torch.from_numpy( # <- (n_samples, data_dim)
-            scaler.transform(xy)
-            ).type(torch.float32
-            )
+            xy).type(torch.float32)
 
-        self.n_samples: int = self.get_whole_stream().size()[0]
+        self.n_samples: int = self.get_all_targets().size()[0]
 
         if verbose:
             print(f"Loaded dataset with {xy.shape[0]} samples of dimension {self.data_dim}, resulted in {self.n_seq} sequences of length {lookback}.")
@@ -216,7 +211,7 @@ class FeedDataset(Dataset):
         for i in range(len(self)):
             target = self.x[i+self.lookback].reshape(self.data_dim)
             targs[i] += target
-        return targs.reshape(-1)
+        return targs.reshape(-1, self.data_dim)
 
     def get_all_sequences(self) -> torch.Tensor:
         seqs = torch.zeros(self.n_seq, self.lookback, self.data_dim)
@@ -226,7 +221,7 @@ class FeedDataset(Dataset):
         return seqs.reshape(-1, self.lookback*self.data_dim)
     
     def get_whole_stream(self) -> torch.Tensor:
-        return self.x.reshape(-1)[:-(self.lookback+1)]
+        return self.x.reshape(-1,self.data_dim)[:-(self.lookback+1)]
 
     def get_all_pi(self) -> torch.Tensor:
         pi = torch.zeros(self.n_seq, self.data_dim*4)
@@ -413,7 +408,7 @@ if __name__ == '__main__':
     # Refactor original sesor dataset
     #refactor_dataset()
     #clean_dataset()
-    select_sensors(do_validation=False)
+    select_sensors(sensors=[2,4,5,7,8], do_validation=False)
 
 
     # Check sensor covariance
