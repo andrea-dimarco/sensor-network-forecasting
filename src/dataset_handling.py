@@ -365,8 +365,60 @@ def select_sensor(sensor=2, hparams:Config=Config(), do_validation:bool=False):
         print(f"Sensor {sensor} data saved in files:\n\t- {train_dataset_path}\n\t- {test_dataset_path}")
 
 
+def select_sensors(sensors=[2,992], hparams:Config=Config(), do_validation:bool=False):
+    '''
+    Saves a csv with only the realizations of the multiple chosen sensors.
+
+    Arguments:
+        - `sensors`: the sensors to isolate, if it's None it will get all the sensors
+        - `do_validation`: if to further split the training set into a validation set
+        - `hparams`: hyperparameters
+    '''
+    dataset_path = "./datasets/sensor_data_multi.csv"
+    train_dataset_path = f"./datasets/{hparams.train_file_name}"
+    val_dataset_path   = f"./datasets/{hparams.val_file_name}"
+    test_dataset_path  = f"./datasets/{hparams.test_file_name}"
+
+    dataset = pd.read_csv("./datasets/sensor_data_cleaned.csv")
+
+    try:
+        if sensors != None:
+            sensor_list = [str(i) for i in sensors]
+            dataset = dataset[sensor_list]
+    except:
+        raise ValueError
+    dataset.to_csv(dataset_path, index=False, header=False)
+
+    # Train & Test
+    train_test_split(X=np.loadtxt(dataset_path, delimiter=",", dtype=np.float32),
+                     split=hparams.train_test_split,
+                     train_file_name=train_dataset_path,
+                     test_file_name=test_dataset_path    
+                     )
+
+    # Train & Validation
+    if do_validation:
+        train_test_split(X=np.loadtxt(train_dataset_path, delimiter=",", dtype=np.float32),
+                        split=hparams.train_val_split,
+                        train_file_name=train_dataset_path,
+                        test_file_name=val_dataset_path    
+                        )
+        print(f"Sensors {sensors} data saved in files:\n\t- {train_dataset_path}\n\t- {val_dataset_path}\n\t- {test_dataset_path}")
+    else:
+        print(f"Sensors {sensors} data saved in files:\n\t- {train_dataset_path}\n\t- {test_dataset_path}")
+
+
 ## TESTING AREA
 if __name__ == '__main__':
+    # Refactor original sesor dataset
     #refactor_dataset()
     #clean_dataset()
-    select_sensor(sensor=2, do_validation=False)
+    select_sensors(do_validation=False)
+
+
+    # Check sensor covariance
+    df = pd.read_csv("./datasets/sensor_data_cleaned.csv")
+    n_sensors = 560
+    dataset = df.to_numpy()[:,:n_sensors]
+    covariance = np.cov(dataset.transpose())
+    print(f"Max covariance of the first {n_sensors} sensors.\n", covariance.max())

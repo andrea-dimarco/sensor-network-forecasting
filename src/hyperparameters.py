@@ -8,11 +8,10 @@ from dataclasses import dataclass
 class Config:
 
     ## Training parameters
-    model_type: bool = 'SSF' # . . . . . Whether to use PSF, SSF or FFSF
-    n_epochs: int = 10**4 #. . . . . . . Number of epochs of training
-    batch_size: int = 32 # . . . . . . . Amount of samples in each batch
-    patience: int = 10**4 #. . . . . . . Patience for the early stopping callback
+    model_type: bool = 'FFSF' # . . . . . Whether to use PSF, SSF or FFSF
+    n_epochs: int = 10**1 #. . . . . . . Number of epochs of training
     seed: int = 42 # . . . . . . . . . . Global Seed
+    batch_size: int = 32 # . . . . . . . Amount of samples in each batch
 
     lr: float = 0.01 # . . . . . . . . . adam: learning rate
     b1: float = 0.75 # . . . . . . . . . adam: decay of first order momentum of gradient
@@ -20,6 +19,8 @@ class Config:
 
     decay_start: float = 1.0 # . . . . . Starting decay factor for the schedulers
     decay_end: float   = 0.1 # . . . . . Ending decay factor for the scheduler
+    
+    patience: int = 10**4 #. . . . . . . Patience for the early stopping callback
 
     log_images: int =  1 # . . . . . . . Number of images to log
 

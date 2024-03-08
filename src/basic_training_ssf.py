@@ -66,68 +66,6 @@ class SSF(nn.Module):
         return x
     
 
-class FFSF(nn.Module):
-    def __init__(self,
-                 data_dim:int,
-                 hidden_dim:int,
-                 lookback:int,
-                 num_layers:int=1) -> None:
-        '''
-        The Single Sensor Forecasting model.
-
-        Arguments:
-            - `data_dim`: dimension of the single sample 
-            - `hidden_dim`: hidden dimension
-            - `num_layers`: number of linear layers
-            - `lookback`: how many backward steps to look
-        '''
-        super().__init__()
-        assert(data_dim > 0)
-        assert(hidden_dim > 0)
-        assert(num_layers > 0)
-        assert(lookback > 0)
-
-        self.pi_dim = data_dim*4
-        # Initialize Modules
-        # input = ( batch_size, lookback*data_dim )
-        model = [
-            nn.Linear(in_features=lookback*data_dim, out_features=hidden_dim),
-            nn.ReLU(inplace=True)
-        ]
-        for i in range(num_layers-1):
-            model += [
-                nn.Linear(in_features=hidden_dim, out_features=hidden_dim),
-                nn.ReLU(inplace=True)
-            ]
-        self.feed = nn.Sequential(*model)
-        self.fc = nn.Linear(in_features=hidden_dim+self.pi_dim,
-                            out_features=data_dim)
-        
-        # init weights
-        self.feed.apply(init_weights)
-        self.fc.apply(init_weights)
-    
-    def forward(self, x:torch.Tensor, p:torch.Tensor) -> torch.Tensor:
-        '''
-        Takes the noise and generates a batch of sequences
-
-        Arguments:
-            - `x`: input of the forward pass with shape [batch, lookback, data_dim]
-
-        Returns:
-            - the predicted sequences [batch, lookback, data_dim]
-        '''
-        # x    = (batch, lookback*data)
-        x = self.feed(x)
-        # x   = (batch, hidden)
-        # p   = (batch, 4)
-        x = torch.cat((x,p), dim=1)
-        # x   = (batch, hidden+4)
-        x = self.fc(x)
-        # x   = (batch, data)
-        return x
-
-
 def init_weights(m):
     '''
     Initialized the weights of the nn.Sequential block
@@ -262,22 +200,27 @@ def train_model(X_train:torch.Tensor,
         model = SSF(data_dim=input_size,
                     hidden_dim=hidden_size,
                     num_layers=num_layers,
-                    ).to(device)
+                    ).to(device=device)
     else:
         raise ValueError
     optimizer = optim.Adam(model.parameters(),
-                           lr=hparams["lr"],
-                           betas=(hparams["b1"], hparams["b2"])
+                           lr=hparams.lr,
+                           betas=(hparams.b1, hparams.b2)
                            )
+    lr_scheduler = torch.optim.lr_scheduler.LinearLR(optimizer,
+                                                     start_factor=hparams.decay_start,
+                                                     end_factor=hparams.decay_end,
+                                                     total_iters=n_epochs
+                                                     )
     train_loader = data.DataLoader(data.TensorDataset(X_train, y_train),
                                    shuffle=True,
                                    batch_size=batch_size
                                    )
     # requred for cuda
-    TRAINING_SET = X_train.to(device)
-    TRAINING_TARGETS = y_train.to(device)
-    VALIDATION_SET = X_val.to(device)
-    VALIDATION_TARGETS = y_val.to(device)
+    TRAINING_SET = X_train.to(device=device)
+    TRAINING_TARGETS = y_train.to(device=device)
+    VALIDATION_SET = X_val.to(device=device)
+    VALIDATION_TARGETS = y_val.to(device=device)
 
     print("Begin Training")
     loss_history = []
@@ -285,8 +228,8 @@ def train_model(X_train:torch.Tensor,
         # Training step
         model.train()
         for X_batch, y_batch in train_loader:
-            y_pred = model(X_batch.to(device))
-            loss = loss_fn(y_pred, y_batch.to(device))
+            y_pred = model(X_batch.to(device=device))
+            loss = loss_fn(y_pred, y_batch.to(device=device))
             optimizer.zero_grad()
             loss.backward()
             optimizer.step()
@@ -301,7 +244,8 @@ def train_model(X_train:torch.Tensor,
                 val_loss = torch.sqrt(loss_fn(y_pred, VALIDATION_TARGETS))
                 if plot_loss:
                     loss_history.append(val_loss.item())
-            print("Epoch %d/%d: train_loss=%.4f, val_loss=%.4f" % (epoch, n_epochs, train_loss, val_loss))
+            print("Epoch %d/%d: train_loss=%.4f, val_loss=%.4f, lr=%.4f" % (epoch, n_epochs, train_loss, val_loss, optimizer.param_groups[0]["lr"]))
+        lr_scheduler.step()
     
     # Save loss plot
     if plot_loss:
@@ -313,40 +257,6 @@ def train_model(X_train:torch.Tensor,
     return model
 
 
-def validate(model,
-             dataset:torch.Tensor,
-             X_train:torch.Tensor,
-             X_test:torch.Tensor
-             ):
-    '''
-    Plots model's prediction on train and test datasets, against the ground truths.
-    '''
-    #TODO: This does not work
-    hparams = Config()
-    lookback = hparams.lookback
-    train_size = X_train.size()[0]
-    test_size = X_test.size()[0]
-    dataset_size = dataset.size()[0]
-    data_dim = X_test.size()[2]
-
-    with torch.no_grad():
-        # shift train predictions for plotting
-        train_plot = np.ones((dataset_size, data_dim)) * np.nan
-        y_pred_train = model(X_train)[:-1:]
-        train_plot[lookback:train_size] = y_pred_train
-
-        # shift test predictions for plotting
-        test_plot = np.ones((dataset_size, data_dim)) * np.nan
-        y_pred_test = model(X_test)[:-1:]
-        test_plot[train_size+lookback:dataset_size] = y_pred_test
-    # plot
-    plt.plot(dataset, c='b')
-    plt.plot(train_plot, c='r')
-    plt.plot(test_plot, c='g')
-    plt.savefig(f"img/{hparams.model_type}-{hparams.n_epochs}-e-{hparams.hidden_dim}-hs-{hparams.seed}-seed.png",dpi=300)
-    plt.show()
-
-
 if __name__ == '__main__':
     set_seed(42)
     X_train, y_train, X_test, y_test = get_data()
@@ -355,12 +265,6 @@ if __name__ == '__main__':
                         X_val=X_test,
                         y_val=y_test
                         )
-    # TODO: fix this workaround, maybe
-    # validate(model=model,
-    #          dataset=dataset,
-    #          X_train=X_train,
-    #          X_test=X_test
-    #          )
     from lightning_training import validate_model
     hparams = Config()
     datasets_folder = "./datasets/"

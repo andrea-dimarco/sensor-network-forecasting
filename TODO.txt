@@ -3,10 +3,9 @@
     - To be decided
 
 - Train on the real dataset
+    - fix FFSF to make it handle more than one sensor
     - compare FFSF and SSF models
     - Why does the validation loss increases?
-    - Try lr schedulers for Adam
-    - Check sensor covariance
     - Predict multiple sensors
 
 - Change Wandb plot
