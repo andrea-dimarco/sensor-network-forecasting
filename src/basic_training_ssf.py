@@ -267,7 +267,7 @@ if __name__ == '__main__':
                     hidden_dim=Config().hidden_dim,
                     num_layers=Config().num_layers,
                     )
-        model.load_state_dict(torch.load("./SSF-model-good.pth"))
+        model.load_state_dict(torch.load("./SSF-1500-hidden-526-input-1-layer.pth"))
     else:
         X_train, y_train, X_test, y_test = get_data()
         # Training
