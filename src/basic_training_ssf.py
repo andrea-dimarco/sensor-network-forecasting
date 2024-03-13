@@ -257,19 +257,31 @@ def train_model(X_train:torch.Tensor,
     return model
 
 
+
 if __name__ == '__main__':
-    set_seed(42)
-    X_train, y_train, X_test, y_test = get_data()
-    model = train_model(X_train=X_train,
-                        y_train=y_train,
-                        X_val=X_test,
-                        y_val=y_test
-                        )
+    # setup
+    set_seed(Config().seed)
+
+    if Config().load_model:
+        model = SSF(data_dim=Config().data_dim,
+                    hidden_dim=Config().hidden_dim,
+                    num_layers=Config().num_layers,
+                    )
+        model.load_state_dict(torch.load("./SSF-model-good.pth"))
+    else:
+        X_train, y_train, X_test, y_test = get_data()
+        # Training
+        model = train_model(X_train=X_train,
+                            y_train=y_train,
+                            X_val=X_test,
+                            y_val=y_test
+                            )
+        del X_train, y_train, X_test, y_test 
+    
+    # Validation
     from lightning_training import validate_model
     hparams = Config()
     datasets_folder = "./datasets/"
-    # free up memory
-    del X_train, y_train, X_test, y_test 
 
     # dataset path
     if hparams.dataset_name in ['sine', 'wien', 'iid', 'cov']:
@@ -284,7 +296,8 @@ if __name__ == '__main__':
     # plot graph
     validate_model(model=model,
                    train_dataset_path=train_dataset_path,
-                   test_dataset_path=test_dataset_path
+                   test_dataset_path=test_dataset_path,
+                   lookback=10
                    )
 
     
