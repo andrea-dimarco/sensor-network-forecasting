@@ -7,17 +7,18 @@ from dataclasses import dataclass
 class Config:
 
     ## Training parameters
-    model_type: bool = 'SSF' # . . . . . Whether to use PSF, SSF or FFSF
-    n_epochs: int = 10**0 # . . . . . . . Number of epochs of training
+    model_type: bool = 'SSF' # . . . . . Which model to use: PSF, SSF or FFSF
+    load_model:bool = False # . . . . . . Whether to load the model or train a new one
+    n_epochs: int = 10**3 #. . . . . . . Number of epochs of training
     seed: int = 79 # . . . . . . . . . . Global Seed
-    batch_size: int = 128 # . . . . . . . Amount of samples in each batch
+    batch_size: int = 128 #. . . . . . . Amount of samples in each batch
 
     lr: float = 0.01 # . . . . . . . . . adam: learning rate
     b1: float = 0.75 # . . . . . . . . . adam: decay of first order momentum of gradient
     b2: float = 0.90 # . . . . . . . . . adam: decay of first order momentum of gradient
 
     decay_start: float = 1.0 # . . . . . Starting decay factor for the schedulers
-    decay_end: float   = 0.75 # . . . . . Ending decay factor for the scheduler
+    decay_end: float   = 0.5 # . . . . . Ending decay factor for the scheduler
     
     patience: int = 10**3 #. . . . . . . Patience for the early stopping callback
     log_images: int =  1 # . . . . . . . Number of images to log
@@ -43,9 +44,8 @@ class Config:
 
 
     ## Network parameters
-    load_model:bool = True
-    hidden_dim: int = 1500 #. . . . . . . Dimension of the hidden layers for the lstm
-    num_layers: int = 1 # . . . . . . . . Number of layers for the generator
+    hidden_dim: int = 1000 #. . . . . . . Dimension of the hidden layers for the lstm
+    num_layers: int = 2 # . . . . . . . . Number of layers for the generator
     lookback: int = 100 # . . . . . . . . Length of the input sequences
     privileged_lookback: int = 100 # . . Length of the privileged lookback
 

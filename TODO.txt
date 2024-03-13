@@ -1,14 +1,8 @@
 - Detrending
     - Kalman Filter
+    - Average prediction error
+    - Anomaly detection
     - To be decided
-
-- Train on the real dataset
-    - fix FFSF to make it handle more than one sensor
-    - compare FFSF and SSF models
-    - Why does the validation loss increases?
-    - Predict multiple sensors
-
-- Change Wandb plot
 
 - Domande:
     - 
