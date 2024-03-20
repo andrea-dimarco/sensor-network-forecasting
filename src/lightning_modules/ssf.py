@@ -169,7 +169,7 @@ class SSF(pl.LightningModule):
             end_factor=self.hparams["decay_end"]
         )
 
-        return ([optim], [lr_scheduler])
+        return optim
    
 
     def training_step(self,

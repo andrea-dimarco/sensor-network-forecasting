@@ -414,7 +414,7 @@ if __name__ == '__main__':
 
     # Check sensor covariance
     df = pd.read_csv("./datasets/sensor_data_cleaned.csv")
-    n_sensors = 560
+    n_sensors = 5
     dataset = df.to_numpy()[:,:n_sensors]
     covariance = np.cov(dataset.transpose())
-    print(f"Max covariance of the first {n_sensors} sensors.\n", covariance.max())
+    print(f"Max covariance of the first {n_sensors} sensors.\n", covariance)

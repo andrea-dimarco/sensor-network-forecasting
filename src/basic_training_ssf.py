@@ -269,11 +269,12 @@ def load_model(data_dim:int=526,
         - `hidden_dim`: hidden dimension of the model
         - `num_layers`: number of concatenated lstm networks
     '''
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     model = SSF(data_dim=data_dim,
                 hidden_dim=hidden_dim,
                 num_layers=num_layers,
                 )
-    model.load_state_dict(torch.load(f"./SSF-{hidden_dim}-hidden-{data_dim}-input-{num_layers}-layer.pth"))
+    model.load_state_dict(torch.load(f"./SSF-{hidden_dim}-hidden-{data_dim}-input-{num_layers}-layer.pth", map_location=device))
     print(f"SSF model with input_dim={data_dim}, hidden_dim={hidden_dim}, num_layers={num_layers} has been loaded.")
     return model
 

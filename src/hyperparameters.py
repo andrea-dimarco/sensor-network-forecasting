@@ -8,7 +8,7 @@ class Config:
 
     ## Training parameters
     model_type: bool = 'SSF' # . . . . . Which model to use: PSF, SSF or FFSF
-    load_model:bool = False # . . . . . . Whether to load the model or train a new one
+    load_model:bool = True # . . . . . . Whether to load the model or train a new one
     n_epochs: int = 10**3 #. . . . . . . Number of epochs of training
     seed: int = 79 # . . . . . . . . . . Global Seed
     batch_size: int = 128 #. . . . . . . Amount of samples in each batch
