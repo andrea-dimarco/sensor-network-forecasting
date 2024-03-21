@@ -234,7 +234,7 @@ def validate_model(model,
                    test_dataset_path:str,
                    hparams:Config=Config(),
                    lookback:int=Config().lookback,
-                   model_type:str='SSF'
+                   model_type:str=Config().model_type
                    ) -> None:
     '''
     Plots a graph with the predictions on the training set and on the test set.
