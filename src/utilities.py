@@ -7,6 +7,7 @@ from typing import List
 import matplotlib as mpl
 from torch.nn import Module
 from torch import Tensor, cat
+import dataset_handling as dh
 import pytorch_lightning as pl
 import matplotlib.pyplot as plt
 from random import uniform, randint
@@ -225,3 +226,127 @@ def generate_data(datasets_folder="./datasets/"):
         raise ValueError("Dataset not supported.")
     
     return train_dataset_path, val_dataset_path, test_dataset_path
+
+
+def validate_model(model,
+                   train_dataset_path:str,
+                   test_dataset_path:str,
+                   hparams:Config=Config(),
+                   lookback:int=Config().lookback,
+                   model_type:str='SSF'
+                   ) -> None:
+    '''
+    Plots a graph with the predictions on the training set and on the test set.
+    '''
+    with torch.no_grad():
+        model.eval()
+        model.cpu()
+
+        # On the TRAINING set
+        if model_type == 'FFSF':
+            dataset_train = dh.FeedDataset(file_path=train_dataset_path,
+                                           lookback=hparams.lookback,
+                                           privileged_lookback=hparams.privileged_lookback
+                                           )
+        elif model_type == 'PSF':
+            dataset_train = dh.PrivilegedDataset(file_path=train_dataset_path,
+                                                 lookback=hparams.lookback,
+                                                 privileged_lookback=hparams.privileged_lookback
+                                                 )
+        elif model_type in ['SSF', 'GSF']:
+            dataset_train = dh.RealDataset(file_path=train_dataset_path,
+                                           lookback=hparams.lookback
+                                           )
+        else:
+            raise ValueError
+        print("Loaded training dataset.")
+        
+        horizon_train = min(int(hparams.plot_horizon/2), dataset_train.n_samples)
+        synth_plot_train = np.ones((dataset_train.n_samples, dataset_train.data_dim)) * np.nan
+
+        if model_type == 'PSF':
+            y_pred = model(dataset_train.get_all_sequences(), dataset_train.get_all_pi()
+                        ).reshape(-1,dataset_train.data_dim)
+        elif model_type in ['SSF', 'GSF']:
+            y_pred = model(dataset_train.get_all_sequences()
+                        ).reshape(-1,dataset_train.data_dim)
+        elif model_type == "FFSF":
+            y_pred = model(dataset_train.get_all_sequences(), dataset_train.get_all_pi()
+                        ).reshape(-1, dataset_train.data_dim)
+
+        if model_type in ['SSF', 'PSF', 'GSF']:
+            synth_plot_train[lookback:] = y_pred[+1:-1]
+        elif model_type == 'FFSF':
+            print("y_pred:", y_pred.shape)
+            synth_plot_train = y_pred
+
+        print("Predictions on training set done.")
+
+
+        # On the TEST set
+        if model_type == 'FFSF':
+            dataset_test = dh.FeedDataset(file_path=test_dataset_path,
+                                        lookback=hparams.lookback,
+                                        privileged_lookback=hparams.privileged_lookback
+                                        )
+        elif model_type == 'PSF':
+            dataset_test = dh.PrivilegedDataset(file_path=test_dataset_path,
+                                        lookback=hparams.lookback,
+                                        privileged_lookback=hparams.privileged_lookback
+                                        )
+        elif model_type in ['SSF', 'GSF']:
+            dataset_test = dh.RealDataset(file_path=test_dataset_path,
+                                    lookback=hparams.lookback
+                                    )
+        else:
+            raise ValueError
+        print("Loaded testing dataset.")
+
+        horizon_test = min(int(hparams.plot_horizon/2), dataset_test.n_samples)
+        synth_plot_test = np.ones((dataset_train.n_samples+dataset_test.n_samples, dataset_test.data_dim)) * np.nan
+        plot_test = np.ones((dataset_train.n_samples+dataset_test.n_samples, dataset_test.data_dim)) * np.nan
+
+        if model_type == 'FFSF':
+            plot_test = plot_test.reshape(-1, dataset_test.data_dim)
+            plot_test[dataset_train.n_samples:] = dataset_test.get_all_targets()
+            synth_plot_test = synth_plot_test.reshape(-1, dataset_test.data_dim)
+        else:
+            plot_test[dataset_train.n_samples:] = dataset_test.get_whole_stream()
+
+        if model_type == 'PSF':
+            y_pred = model(dataset_test.get_all_sequences(), dataset_test.get_all_pi()
+                        ).reshape(-1,dataset_train.data_dim)
+            
+        elif model_type in ['SSF', 'GSF']:
+            y_pred = model(dataset_test.get_all_sequences()
+                        ).reshape(-1,dataset_train.data_dim)
+
+        elif model_type == "FFSF":
+            y_pred = model(dataset_test.get_all_sequences(), dataset_test.get_all_pi()
+                        ).reshape(-1, dataset_test.data_dim)
+
+        if model_type in ['SSF', 'PSF', 'GSF']:
+            synth_plot_test[dataset_train.n_samples+lookback:] = y_pred[lookback+1:-1]
+        elif model_type == 'FFSF':
+            synth_plot_test[dataset_train.n_samples:] = y_pred
+
+        print("Predictions on testing set done.")
+
+        #plt.figure(figsize=(50,20),dpi=300)
+        plt.grid(True)
+        fig,ax = plt.subplots()
+        ax.grid(which = "major", linewidth = 1)
+        ax.grid(which = "minor", linewidth = 0.2)
+        #plt.minorticks_on()
+        fig.set_size_inches(18.5, 10.5)
+        ax.minorticks_on()
+        # Only plot the first dimension
+        plt.plot(dataset_train.get_whole_stream()[:horizon_train,0], c='b')
+        plt.plot(synth_plot_train[:horizon_train,0], c='r')
+
+        plt.plot(plot_test[dataset_train.n_samples-horizon_test : dataset_train.n_samples+horizon_test,0], c='b')
+        plt.plot(synth_plot_test[dataset_train.n_samples-horizon_test : dataset_train.n_samples+horizon_test,0], c='g')
+
+        print("Plot done.")
+        plt.savefig(f"img/{model_type}-{hparams.n_epochs}-e-{hparams.hidden_dim}-hs-{hparams.seed}-seed.png",dpi=300)
+        plt.show()

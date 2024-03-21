@@ -4,18 +4,20 @@ warnings.filterwarnings("ignore")
 
 import torch
 import random
+import time
 import numpy as np
 import torch.nn as nn
 import torch.optim as optim
 import pytorch_lightning as pl
 import matplotlib.pyplot as plt
 import torch.utils.data as data
+from torchsummary import summary
 from hyperparameters import Config
 from utilities import validate_model
 from data_generation.wiener_process import multi_dim_wiener_process
 
 
-class SSF(nn.Module):
+class GSF(nn.Module):
     def __init__(self,
                  data_dim:int,
                  hidden_dim:int,
@@ -27,7 +29,7 @@ class SSF(nn.Module):
         Arguments:
             - `data_dim`: dimension of the single sample 
             - `hidden_dim`: hidden dimension
-            - `num_layers`: number of lstm layers
+            - `num_layers`: number of gru layers
         '''
         super().__init__()
         assert(data_dim > 0)
@@ -36,7 +38,7 @@ class SSF(nn.Module):
 
         # Initialize Modules
         # input = ( batch_size, lookback, data_dim )
-        self.lstm = nn.LSTM(input_size=data_dim,
+        self.gru = nn.GRU(input_size=data_dim,
                             hidden_size=hidden_dim,
                             num_layers=num_layers,
                             batch_first=True
@@ -47,10 +49,10 @@ class SSF(nn.Module):
         
         # init weights
         self.fc.apply(init_weights)
-        for layer_p in self.lstm._all_weights:
+        for layer_p in self.gru._all_weights:
             for p in layer_p:
                 if 'weight' in p:
-                    nn.init.xavier_uniform_(self.lstm.__getattr__(p))
+                    nn.init.xavier_uniform_(self.gru.__getattr__(p))
     
     def forward(self, x:torch.Tensor) -> torch.Tensor:
         '''
@@ -62,7 +64,7 @@ class SSF(nn.Module):
         Returns:
             - the predicted sequences [batch, lookback, data_dim]
         '''
-        x, _ = self.lstm(x)
+        x, _ = self.gru(x)
         x = self.fc(x)
         return x
     
@@ -164,6 +166,10 @@ def get_data(verbose=True):
     return X_train, y_train, X_test, y_test
 
 
+def count_parameters(model):
+    return sum(p.numel() for p in model.parameters() if p.requires_grad)
+
+
 def train_model(X_train:torch.Tensor,
                 y_train:torch.Tensor,
                 X_val:torch.Tensor,
@@ -197,13 +203,12 @@ def train_model(X_train:torch.Tensor,
     n_epochs = hparams.n_epochs
     num_layers = hparams.num_layers
 
-    if hparams.model_type == "SSF":
-        model = SSF(data_dim=input_size,
-                    hidden_dim=hidden_size,
-                    num_layers=num_layers,
-                    ).to(device=device)
-    else:
-        raise ValueError
+    model = GSF(data_dim=input_size,
+                hidden_dim=hidden_size,
+                num_layers=num_layers,
+                ).to(device=device)
+    print("Parameters count: ", count_parameters(model))
+
     optimizer = optim.Adam(model.parameters(),
                            lr=hparams.lr,
                            betas=(hparams.b1, hparams.b2)
@@ -225,6 +230,7 @@ def train_model(X_train:torch.Tensor,
 
     print("Begin Training")
     loss_history = []
+    start_time = time.time()
     for epoch in range(n_epochs):
         # Training step
         model.train()
@@ -245,7 +251,9 @@ def train_model(X_train:torch.Tensor,
                 val_loss = torch.sqrt(loss_fn(y_pred, VALIDATION_TARGETS))
                 if plot_loss:
                     loss_history.append(val_loss.item())
-            print("Epoch %d/%d: train_loss=%.4f, val_loss=%.4f, lr=%.4f" % (epoch, n_epochs, train_loss, val_loss, optimizer.param_groups[0]["lr"]))
+            end_time = time.time()
+            print("Epoch %d/%d: train_loss=%.4f, val_loss=%.4f, lr=%.4f, time=%.4f" % (epoch, n_epochs, train_loss, val_loss, optimizer.param_groups[0]["lr"], end_time-start_time))
+            start_time = time.time()
         lr_scheduler.step()
     
     # Save loss plot
@@ -254,29 +262,29 @@ def train_model(X_train:torch.Tensor,
         plt.savefig(f"img/loss-{n_epochs}-e.png")
 
     # Log the trained model
-    torch.save(model.state_dict(), f"./{hparams.model_type}-model.pth")
+    torch.save(model.state_dict(), f"./GSF-model.pth")
     return model
 
 
 def load_model(data_dim:int=526,
                hidden_dim:int=1500,
                num_layers:int=1
-               ) -> SSF:
+               ) -> GSF:
     '''
     Rturns the pretrained model.
 
     Arguments:
         - `data_dim`: dimension of one sample
         - `hidden_dim`: hidden dimension of the model
-        - `num_layers`: number of concatenated lstm networks
+        - `num_layers`: number of concatenated gru networks
     '''
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    model = SSF(data_dim=data_dim,
+    model = GSF(data_dim=data_dim,
                 hidden_dim=hidden_dim,
                 num_layers=num_layers,
                 )
-    model.load_state_dict(torch.load(f"./SSF-{hidden_dim}-hidden-{data_dim}-input-{num_layers}-layer.pth", map_location=device))
-    print(f"SSF model with input_dim={data_dim}, hidden_dim={hidden_dim}, num_layers={num_layers} has been loaded.")
+    model.load_state_dict(torch.load(f"./GSF-{hidden_dim}-hidden-{data_dim}-input-{num_layers}-layer.pth", map_location=device))
+    print(f"GSF model with input_dim={data_dim}, hidden_dim={hidden_dim}, num_layers={num_layers} has been loaded.")
     return model
 
 
@@ -293,7 +301,8 @@ if __name__ == '__main__':
         model = train_model(X_train=X_train,
                             y_train=y_train,
                             X_val=X_test,
-                            y_val=y_test
+                            y_val=y_test,
+                            val_frequency=100
                             )
         del X_train, y_train, X_test, y_test 
     
@@ -314,7 +323,8 @@ if __name__ == '__main__':
     validate_model(model=model,
                    train_dataset_path=train_dataset_path,
                    test_dataset_path=test_dataset_path,
-                   lookback=10
+                   lookback=10,
+                   model_type='GSF'
                    )
 
     

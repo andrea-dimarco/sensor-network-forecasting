@@ -408,7 +408,7 @@ if __name__ == '__main__':
     # Refactor original sesor dataset
     #refactor_dataset()
     #clean_dataset()
-    select_sensors(sensors=None, #20 sensors
+    select_sensors(sensors=[2], #20 sensors
                    do_validation=False)
 
 
@@ -417,4 +417,5 @@ if __name__ == '__main__':
     n_sensors = 5
     dataset = df.to_numpy()[:,:n_sensors]
     covariance = np.cov(dataset.transpose())
-    print(f"Max covariance of the first {n_sensors} sensors.\n", covariance)
+    print(f"Max covariance of the first {n_sensors} sensors.\n", covariance.max())
+    print(df.std())

@@ -12,7 +12,7 @@ import pytorch_lightning as pl
 import matplotlib.pyplot as plt
 import torch.utils.data as data
 from hyperparameters import Config
-from lightning_training import validate_model
+from utilities import validate_model
 from data_generation.wiener_process import multi_dim_wiener_process
 
     
