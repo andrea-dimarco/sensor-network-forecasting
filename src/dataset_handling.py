@@ -408,7 +408,7 @@ if __name__ == '__main__':
     # Refactor original sesor dataset
     #refactor_dataset()
     #clean_dataset()
-    select_sensors(sensors=[2], #20 sensors
+    select_sensors(sensors=None,
                    do_validation=False)
 
 

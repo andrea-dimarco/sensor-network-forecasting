@@ -10,11 +10,8 @@
     - vogliamo predirre solo le spike
     - tutto quello sotto la deviazione standatd non ci interessa
 
-- Aggiusta il plot dei risultati
-
 - Fare la rete più piccola
-    - GRU invcece che LSTM
-    - Cerca di restare sulla decina di parametri per sensore
+    - Cerca di restare sulla decina/centinaio di parametri per sensore
     
 - Riprova a prevedere e spike sul SINGOLO sensore
     - Prova a vedere se la stessa rete funzioni su ogni sensore 

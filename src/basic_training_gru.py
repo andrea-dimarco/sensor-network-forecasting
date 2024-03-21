@@ -302,7 +302,7 @@ if __name__ == '__main__':
                             y_train=y_train,
                             X_val=X_test,
                             y_val=y_test,
-                            val_frequency=50
+                            val_frequency=10
                             )
         del X_train, y_train, X_test, y_test 
     

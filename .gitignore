@@ -1,4 +1,4 @@
-SSF-model.pth
+*-model.pth
 wandb/*
 *(2024)
 wien_*.csv
