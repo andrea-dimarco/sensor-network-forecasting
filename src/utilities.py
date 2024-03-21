@@ -10,6 +10,7 @@ from torch import Tensor, cat
 import dataset_handling as dh
 import pytorch_lightning as pl
 import matplotlib.pyplot as plt
+from hyperparameters import Config
 from random import uniform, randint
 from sklearn.decomposition import PCA
 

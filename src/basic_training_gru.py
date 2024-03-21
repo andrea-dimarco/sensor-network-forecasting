@@ -252,7 +252,7 @@ def train_model(X_train:torch.Tensor,
                 if plot_loss:
                     loss_history.append(val_loss.item())
             end_time = time.time()
-            print("Epoch %d/%d: train_loss=%.4f, val_loss=%.4f, lr=%.4f, time=%.4f" % (epoch, n_epochs, train_loss, val_loss, optimizer.param_groups[0]["lr"], end_time-start_time))
+            print("Epoch %d/%d: train_loss=%.4f, val_loss=%.4f, lr=%.4f, elapsed_time=%.4fs" % (epoch, n_epochs, train_loss, val_loss, optimizer.param_groups[0]["lr"], end_time-start_time))
             start_time = time.time()
         lr_scheduler.step()
     
