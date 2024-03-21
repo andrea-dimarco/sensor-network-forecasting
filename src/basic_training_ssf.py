@@ -1,7 +1,7 @@
 import warnings
 warnings.filterwarnings("ignore")
 
-
+import time
 import torch
 import random
 import numpy as np
@@ -225,6 +225,7 @@ def train_model(X_train:torch.Tensor,
 
     print("Begin Training")
     loss_history = []
+    start_time = time.time()
     for epoch in range(n_epochs):
         # Training step
         model.train()
@@ -245,7 +246,9 @@ def train_model(X_train:torch.Tensor,
                 val_loss = torch.sqrt(loss_fn(y_pred, VALIDATION_TARGETS))
                 if plot_loss:
                     loss_history.append(val_loss.item())
-            print("Epoch %d/%d: train_loss=%.4f, val_loss=%.4f, lr=%.4f" % (epoch, n_epochs, train_loss, val_loss, optimizer.param_groups[0]["lr"]))
+            end_time = time.time()
+            print("Epoch %d/%d: train_loss=%.4f, val_loss=%.4f, lr=%.4f, elapsed_time=%.2fs" % (epoch, n_epochs, train_loss, val_loss, optimizer.param_groups[0]["lr"], end_time-start_time))
+            start_time = time.time()
         lr_scheduler.step()
     
     # Save loss plot

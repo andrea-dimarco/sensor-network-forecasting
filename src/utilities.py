@@ -265,21 +265,17 @@ def validate_model(model,
         horizon_train = min(int(hparams.plot_horizon/2), dataset_train.n_samples)
         synth_plot_train = np.ones((dataset_train.n_samples, dataset_train.data_dim)) * np.nan
 
-        if model_type == 'PSF':
+        if model_type in ['PSF', 'FFSF']:
             y_pred = model(dataset_train.get_all_sequences(), dataset_train.get_all_pi()
                         ).reshape(-1,dataset_train.data_dim)
         elif model_type in ['SSF', 'GSF']:
             y_pred = model(dataset_train.get_all_sequences()
                         ).reshape(-1,dataset_train.data_dim)
-        elif model_type == "FFSF":
-            y_pred = model(dataset_train.get_all_sequences(), dataset_train.get_all_pi()
-                        ).reshape(-1, dataset_train.data_dim)
 
         if model_type in ['SSF', 'PSF', 'GSF']:
-            synth_plot_train[lookback:] = y_pred[+1:-1]
+            synth_plot_train[lookback+1:] = y_pred[lookback:-1]
         elif model_type == 'FFSF':
-            print("y_pred:", y_pred.shape)
-            synth_plot_train = y_pred
+            synth_plot_train[lookback+1:] = y_pred[:-lookback-1]
 
         print("Predictions on training set done.")
 
@@ -314,7 +310,7 @@ def validate_model(model,
         else:
             plot_test[dataset_train.n_samples:] = dataset_test.get_whole_stream()
 
-        if model_type == 'PSF':
+        if model_type in ['PSF', 'FFSF']:
             y_pred = model(dataset_test.get_all_sequences(), dataset_test.get_all_pi()
                         ).reshape(-1,dataset_train.data_dim)
             
@@ -322,14 +318,10 @@ def validate_model(model,
             y_pred = model(dataset_test.get_all_sequences()
                         ).reshape(-1,dataset_train.data_dim)
 
-        elif model_type == "FFSF":
-            y_pred = model(dataset_test.get_all_sequences(), dataset_test.get_all_pi()
-                        ).reshape(-1, dataset_test.data_dim)
-
         if model_type in ['SSF', 'PSF', 'GSF']:
-            synth_plot_test[dataset_train.n_samples+lookback:] = y_pred[lookback+1:-1]
+            synth_plot_test[dataset_train.n_samples+lookback+1:] = y_pred[lookback:-1]
         elif model_type == 'FFSF':
-            synth_plot_test[dataset_train.n_samples:] = y_pred
+            synth_plot_test[dataset_train.n_samples+lookback+1:] = y_pred[:-lookback-1]
 
         print("Predictions on testing set done.")
 

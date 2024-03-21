@@ -144,14 +144,11 @@ def train_model(train_file_path="./datasets/training.csv",
     n_epochs = hparams.n_epochs
     num_layers = hparams.num_layers
 
-    if hparams.model_type == "FFSF":
-        model = FFSF(data_dim=input_size,
-                     hidden_dim=hidden_size,
-                     num_layers=num_layers,
-                     lookback=hparams.lookback
-                     ).to(device=device)
-    else:
-        raise ValueError
+    model = FFSF(data_dim=input_size,
+                    hidden_dim=hidden_size,
+                    num_layers=num_layers,
+                    lookback=hparams.lookback
+                    ).to(device=device)
     
     optimizer = optim.Adam(model.parameters(),
                            lr=hparams.lr,
@@ -233,7 +230,8 @@ if __name__ == '__main__':
     # plot graph
     validate_model(model=model,
                    train_dataset_path=train_dataset_path,
-                   test_dataset_path=test_dataset_path
+                   test_dataset_path=test_dataset_path,
+                   model_type='FFSF'
                    )
 
     

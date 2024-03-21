@@ -2,9 +2,9 @@ import warnings
 warnings.filterwarnings("ignore")
 
 
+import time
 import torch
 import random
-import time
 import numpy as np
 import torch.nn as nn
 import torch.optim as optim
@@ -252,7 +252,7 @@ def train_model(X_train:torch.Tensor,
                 if plot_loss:
                     loss_history.append(val_loss.item())
             end_time = time.time()
-            print("Epoch %d/%d: train_loss=%.4f, val_loss=%.4f, lr=%.4f, elapsed_time=%.4fs" % (epoch, n_epochs, train_loss, val_loss, optimizer.param_groups[0]["lr"], end_time-start_time))
+            print("Epoch %d/%d: train_loss=%.4f, val_loss=%.4f, lr=%.4f, elapsed_time=%.2fs" % (epoch, n_epochs, train_loss, val_loss, optimizer.param_groups[0]["lr"], end_time-start_time))
             start_time = time.time()
         lr_scheduler.step()
     
@@ -293,7 +293,7 @@ if __name__ == '__main__':
     hparams = Config()
     set_seed(hparams.seed)
 
-    if hparams.load_model:
+    if False:#hparams.load_model:
         model = load_model()
 
     else:
@@ -302,7 +302,7 @@ if __name__ == '__main__':
                             y_train=y_train,
                             X_val=X_test,
                             y_val=y_test,
-                            val_frequency=100
+                            val_frequency=50
                             )
         del X_train, y_train, X_test, y_test 
     

@@ -9,9 +9,9 @@ class Config:
     ## Training parameters
     model_type: bool = 'SSF' # . . . . . Which model to use: PSF, SSF or FFSF
     load_model:bool = False # . . . . . . Whether to load the model or train a new one
-    n_epochs: int = 500 #. . . . . . . Number of epochs of training
+    n_epochs: int = 1 #. . . . . . . Number of epochs of training
     seed: int = 79 # . . . . . . . . . . Global Seed
-    batch_size: int = 128 #. . . . . . . Amount of samples in each batch
+    batch_size: int = 64 #. . . . . . . Amount of samples in each batch
 
     lr: float = 0.01 # . . . . . . . . . adam: learning rate
     b1: float = 0.75 # . . . . . . . . . adam: decay of first order momentum of gradient
