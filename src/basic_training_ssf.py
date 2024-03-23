@@ -257,7 +257,7 @@ def train_model(X_train:torch.Tensor,
         plt.savefig(f"img/loss-{n_epochs}-e.png")
 
     # Log the trained model
-    torch.save(model.state_dict(), f"./{hparams.model_type}-model.pth")
+    torch.save(model.state_dict(), f"./SSF-{hidden_size}-hidden-{data_dim}-input-{num_layers}-layer.pth")
     return model
 
 

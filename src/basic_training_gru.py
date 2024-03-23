@@ -257,13 +257,13 @@ def train_model(X_train:torch.Tensor,
         plt.savefig(f"img/loss-{n_epochs}-e.png")
 
     # Log the trained model
-    torch.save(model.state_dict(), f"./GSF-model.pth")
+    torch.save(model.state_dict(), f"./GSF-{hidden_size}-hidden-{data_dim}-input-{num_layers}-layer.pth")
     return model
 
 
 def load_model(data_dim:int=526,
-               hidden_dim:int=1500,
-               num_layers:int=1
+               hidden_dim:int=Config().hidden_dim,
+               num_layers:int=Config().num_layers
                ) -> GSF:
     '''
     Rturns the pretrained model.
@@ -320,6 +320,5 @@ if __name__ == '__main__':
                    test_dataset_path=test_dataset_path,
                    lookback=10,
                    model_type='GSF'
-                   )
-
+                   )    
     

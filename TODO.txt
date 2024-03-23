@@ -1,8 +1,8 @@
-- Detrending
-    - Kalman Filter
-    - Average prediction error
-    - Anomaly detection
-    - To be decided
+
+- Train with clusters
+    - Compara training di sensori singoli contro Training con cluster
+    - Metrica per comparare i modelli
+        - val_loss
 
 - Modella la loss della rete per prevedere solo le spike
     - spike := valore che si discosta dal valore medio/std di una certa percentuale
@@ -12,12 +12,29 @@
 
 - Fare la rete più piccola
     - Cerca di restare sulla decina/centinaio di parametri per sensore
-
-- Cluster di sensor con alta correlazione
     
 - Riprova a prevedere e spike sul SINGOLO sensore
     - Prova a vedere se la stessa rete funzioni su ogni sensore 
         - addestrare la rete su un sensore e testarla sugli altri
         - addestrare la rete sulle parti iniziali di ogni sensore
 
+- Detrending
+    - Kalman Filter
+    - Average prediction error
+    - Anomaly detection
+    - To be decided
+
 - Scrivere report
+
+## == Completed == ##
+- LSTM
+- LSTM with Privileged Info
+- Feed Forward with Privleged Information
+- RNN
+- GRU
+- Train with 1 sensor
+- Train with all sensors
+- Hyperparameter tuning
+- Trash Lighting Module
+- Clustering
+
