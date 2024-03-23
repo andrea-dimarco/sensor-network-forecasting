@@ -229,6 +229,10 @@ def generate_data(datasets_folder="./datasets/"):
     return train_dataset_path, val_dataset_path, test_dataset_path
 
 
+def count_parameters(model):
+    return sum(p.numel() for p in model.parameters() if p.requires_grad)
+
+
 def validate_model(model,
                    train_dataset_path:str,
                    test_dataset_path:str,

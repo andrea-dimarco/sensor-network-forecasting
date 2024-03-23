@@ -1,7 +1,10 @@
+# Project related stuff
 *-model.pth
 wandb/*
 *(2024)
 wien_*.csv
+*_multi.csv
+
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

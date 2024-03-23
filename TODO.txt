@@ -12,8 +12,12 @@
 
 - Fare la rete più piccola
     - Cerca di restare sulla decina/centinaio di parametri per sensore
+
+- Cluster di sensor con alta correlazione
     
 - Riprova a prevedere e spike sul SINGOLO sensore
     - Prova a vedere se la stessa rete funzioni su ogni sensore 
         - addestrare la rete su un sensore e testarla sugli altri
         - addestrare la rete sulle parti iniziali di ogni sensore
+
+- Scrivere report

@@ -7,8 +7,11 @@ from pathlib import Path
 import torch
 import pandas as pd
 from hyperparameters import Config
-
+import seaborn as sns
+import matplotlib.pyplot as plt
 import numpy as np
+from scipy.cluster.hierarchy import linkage, dendrogram, fcluster
+from scipy.spatial.distance import squareform
     
 
 class RealDataset(Dataset):
@@ -403,19 +406,96 @@ def select_sensors(sensors=[2,992], hparams:Config=Config(), do_validation:bool=
         print(f"Sensors {sensors} data saved in files:\n\t- {train_dataset_path}\n\t- {test_dataset_path}")
 
 
+def corr_heatmap(correlation,
+                 save_pic:bool=True,
+                 show_pic:bool=True
+                 ) -> None:
+    '''
+    Saves a picture of the correlation matrix as a heatmap.
+    '''
+    plt.figure()
+    sns.heatmap(correlation,
+                cmap='RdBu',
+                annot=False,
+                vmin=-1,
+                vmax=1
+                )
+    if save_pic:
+        plt.savefig("./img/correlation-heatmap.png",dpi=300)
+    if show_pic:
+        plt.show()
+
+
+def cluster_sensors(correlation,
+                    threshold:float=1.0,
+                    show_pic:bool=True,
+                    save_pic:bool=True
+                    ) -> np.ndarray:
+    '''
+    Given the correlation matrix, assigns the sensors to clusters and returns the labels.
+    '''
+    if show_pic or save_pic:
+        plt.figure()
+    dissimilarity = 1 - abs(correlation)
+    Z = linkage(squareform(dissimilarity), 'complete')
+
+    dendrogram(Z,
+               labels=correlation.columns,
+               orientation='top',
+               leaf_rotation=90
+               )
+    if save_pic:
+        plt.savefig("./img/dendrogram.png", dpi=300)
+    if show_pic:
+        plt.show()
+    
+    # Clusterize the data
+    labels = fcluster(Z, threshold, criterion='distance')
+
+    # Show the cluster
+    return labels
+
+
 ## TESTING AREA
 if __name__ == '__main__':
+    hparams = Config()
     # Refactor original sesor dataset
     #refactor_dataset()
     #clean_dataset()
-    select_sensors(sensors=None,
-                   do_validation=False)
+    # select_sensors(sensors=[973,974,975,977,978,980,982,985,988,992],
+    #                do_validation=False)
 
 
     # Check sensor covariance
     df = pd.read_csv("./datasets/sensor_data_cleaned.csv")
-    n_sensors = 5
-    dataset = df.to_numpy()[:,:n_sensors]
-    covariance = np.cov(dataset.transpose())
-    print(f"Max covariance of the first {n_sensors} sensors.\n", covariance.max())
-    print(df.std())
+    dataset = df.to_numpy()
+    n_sensors = min(hparams.n_sensors, 526)
+
+    # Check sensor correlation
+    correlation = df.iloc[:,:n_sensors].corr()
+    # print(f"Correlation matrix of the first {n_sensors} sensors:\n", correlation)
+    # print("Standard deviation of the first {n_sensors} sensors: ", df.std()[:n_sensors])
+    # corr_heatmap(correlation)
+    
+
+    # Cluster the sensors
+    labels = cluster_sensors(correlation,
+                             threshold=hparams.clustering_threshold,
+                             show_pic=False
+                             )
+    n_clusters = labels.max()
+    print(f"The clusters of the first {n_sensors} sensors are:", n_clusters)
+
+    clusters = dict() 
+    for sensor_idx in range(len(labels)):
+        cluster = labels[sensor_idx]
+        sensor_id = int(correlation.columns[sensor_idx])
+        if cluster in clusters.keys():
+            clusters[cluster].append(sensor_id)
+        else:
+            clusters[cluster] = [sensor_id]
+
+    cluster = min(hparams.selected_cluster, n_clusters)
+    for i in range(1,n_clusters+1):
+        print(i,":", clusters[i])
+    select_sensors(sensors=clusters[cluster])

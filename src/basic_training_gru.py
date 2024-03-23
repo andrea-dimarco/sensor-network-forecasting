@@ -11,9 +11,8 @@ import torch.optim as optim
 import pytorch_lightning as pl
 import matplotlib.pyplot as plt
 import torch.utils.data as data
-from torchsummary import summary
 from hyperparameters import Config
-from utilities import validate_model
+import utilities as ut
 from data_generation.wiener_process import multi_dim_wiener_process
 
 
@@ -166,10 +165,6 @@ def get_data(verbose=True):
     return X_train, y_train, X_test, y_test
 
 
-def count_parameters(model):
-    return sum(p.numel() for p in model.parameters() if p.requires_grad)
-
-
 def train_model(X_train:torch.Tensor,
                 y_train:torch.Tensor,
                 X_val:torch.Tensor,
@@ -207,7 +202,7 @@ def train_model(X_train:torch.Tensor,
                 hidden_dim=hidden_size,
                 num_layers=num_layers,
                 ).to(device=device)
-    print("Parameters count: ", count_parameters(model))
+    print("Parameters count: ", ut.count_parameters(model))
 
     optimizer = optim.Adam(model.parameters(),
                            lr=hparams.lr,
@@ -302,7 +297,7 @@ if __name__ == '__main__':
                             y_train=y_train,
                             X_val=X_test,
                             y_val=y_test,
-                            val_frequency=10
+                            val_frequency=50
                             )
         del X_train, y_train, X_test, y_test 
     
@@ -320,7 +315,7 @@ if __name__ == '__main__':
         raise ValueError("Dataset not supported.")
     
     # plot graph
-    validate_model(model=model,
+    ut.validate_model(model=model,
                    train_dataset_path=train_dataset_path,
                    test_dataset_path=test_dataset_path,
                    lookback=10,

@@ -1,7 +1,7 @@
 import warnings
 warnings.filterwarnings("ignore")
 
-
+import time
 import torch
 import random
 import numpy as np
@@ -12,7 +12,7 @@ import pytorch_lightning as pl
 import matplotlib.pyplot as plt
 import torch.utils.data as data
 from hyperparameters import Config
-from utilities import validate_model
+import utilities as ut
 
     
 
@@ -148,7 +148,7 @@ def train_model(train_file_path="./datasets/training.csv",
                     num_layers=num_layers,
                     lookback=hparams.lookback
                     ).to(device=device)
-    
+    print("Parameters count: ", ut.count_parameters(model))
     optimizer = optim.Adam(model.parameters(),
                            lr=hparams.lr,
                            betas=(hparams.b1, hparams.b2)
@@ -173,6 +173,7 @@ def train_model(train_file_path="./datasets/training.csv",
 
     print("Begin Training")
     loss_history = []
+    start_time = time.time()
     for epoch in range(n_epochs):
         # Training step
         model.train()
@@ -193,7 +194,9 @@ def train_model(train_file_path="./datasets/training.csv",
                 val_loss = torch.sqrt(loss_fn(y_pred, VALIDATION_TARGETS))
                 if plot_loss:
                     loss_history.append(val_loss.item())
-            print("Epoch %d/%d: train_loss=%.4f, val_loss=%.4f, lr=%.4f" % (epoch, n_epochs, train_loss, val_loss, optimizer.param_groups[0]["lr"]))
+            end_time = time.time()
+            print("Epoch %d/%d: train_loss=%.4f, val_loss=%.4f, lr=%.4f, elapsed_time=%.2fs" % (epoch, n_epochs, train_loss, val_loss, optimizer.param_groups[0]["lr"], end_time-start_time))
+            start_time = time.time()
         lr_scheduler.step()
     
     # Save loss plot
@@ -227,7 +230,7 @@ if __name__ == '__main__':
                         )
     
     # plot graph
-    validate_model(model=model,
+    ut.validate_model(model=model,
                    train_dataset_path=train_dataset_path,
                    test_dataset_path=test_dataset_path,
                    model_type='FFSF'
