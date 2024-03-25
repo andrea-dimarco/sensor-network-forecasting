@@ -17,6 +17,7 @@
     - Prova a vedere se la stessa rete funzioni su ogni sensore 
         - addestrare la rete su un sensore e testarla sugli altri
         - addestrare la rete sulle parti iniziali di ogni sensore
+    - Prova se la rete di un sensore funziona sugli altri sensori dello stessoo cluster
 
 - Detrending
     - Kalman Filter
@@ -27,14 +28,17 @@
 - Scrivere report
 
 ## == Completed == ##
+- Dataset Cleanup
+    - NaNs
+    - Sensr selection
 - LSTM
 - LSTM with Privileged Info
 - Feed Forward with Privleged Information
+- Trash Lighting Module
 - RNN
 - GRU
 - Train with 1 sensor
 - Train with all sensors
 - Hyperparameter tuning
-- Trash Lighting Module
 - Clustering
 

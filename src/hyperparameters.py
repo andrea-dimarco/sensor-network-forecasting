@@ -8,10 +8,10 @@ class Config:
 
     ## Training parameters
     model_type: bool = 'SSF' # . . . . . Which model to use: PSF, SSF or FFSF
-    load_model:bool = False # . . . . . . Whether to load the model or train a new one
-    n_epochs: int = 1 #. . . . . . . Number of epochs of training
+    load_model: bool = False #. . . . . . Whether to load the model or train a new one
+    n_epochs: int = 501 #. . . . . . . Number of epochs of training
     val_frequency: int = 50 #. . . . . . How often to perform a validation step
-    seed: int = 40 # . . . . . . . . . . Global Seed
+    seed: int = 22 # . . . . . . . . . . Global Seed
     batch_size: int = 64 #. . . . . . . Amount of samples in each batch
 
     lr: float = 0.01 # . . . . . . . . . adam: learning rate
@@ -19,7 +19,7 @@ class Config:
     b2: float = 0.90 # . . . . . . . . . adam: decay of first order momentum of gradient
 
     decay_start: float = 1.0 # . . . . . Starting decay factor for the schedulers
-    decay_end: float   = 0.90 #. . . . . Ending decay factor for the scheduler
+    decay_end: float   = 0.95 #. . . . . Ending decay factor for the scheduler
     
     patience: int = 10**3 #. . . . . . . Patience for the early stopping callback
     log_images: int =  1 # . . . . . . . Number of images to log
@@ -27,12 +27,12 @@ class Config:
 
     ## Data loading
     #. . . . . . . . . . . . . . . . . . Datasets file names
+    n_sensors: int = 600 # . . . . . . . Number of sensors to consider when creating csv
+    cluster_selected: int = 11 #. . . . . Cluster to select for training
+    clustering_threshold: float = 0.321 # Threshold for the hierarchical clustering 
     train_file_name = "training.csv"
     test_file_name  = "testing.csv"
     val_file_name   = "validating.csv"
-    n_sensors: int = 600 # . . . . . . . Number of sensors to consider when creating csv
-    selected_cluster: int = 5 # . . . . Cluster to select for training
-    clustering_threshold: float = 0.775# Threshold for the hierarchical clustering 
     dataset_name: str = 'real' # . . . . Which dataset to use
                                # . . . . . . real: gets the samples from csv files
                                # . . . . . . sine: runs independent sine processes wih random phases
@@ -48,13 +48,13 @@ class Config:
 
 
     ## Network parameters
-    hidden_dim: int = 100 #. . . . . . . Dimension of the hidden layers for the lstm
+    hidden_dim: int = 140 #. . . . . . . Dimension of the hidden layers for the lstm
     num_layers: int = 1 #. . . . . . . . Number of layers for the generator
-    lookback: int = 100 #. . . . . . . . Length of the input sequences
+    lookback: int = 33 #. . . . . . . . Length of the input sequences
     privileged_lookback: int = 5 # . . . Length of the privileged lookback
 
 
     ## Testing phase
-    plot_horizon: int = 2000 # . . . . . How many samples to plot when testing
+    plot_horizon: int = 1000 # . . . . . How many samples to plot when testing
     alpha: float = 0.1 # . . . . . . . . Parameter for the Anomaly Detector
     h: float = 10 #. . . . . . . . . . . Parameter for the Anomaly Detector

@@ -205,7 +205,7 @@ def train_model(train_file_path="./datasets/training.csv",
         plt.savefig(f"img/loss-{n_epochs}-e.png")
 
     # Log the trained model
-    torch.save(model.state_dict(), f"./FFSF-{hidden_size}-hidden-{data_dim}-input-{num_layers}-layer.pth")
+    torch.save(model.state_dict(), f"./models/FFSF-{hidden_size}-hidden-{data_dim}-input-{num_layers}-layer.pth")
     return model
 
 

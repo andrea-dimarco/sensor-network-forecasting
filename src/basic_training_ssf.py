@@ -257,7 +257,7 @@ def train_model(X_train:torch.Tensor,
         plt.savefig(f"img/loss-{n_epochs}-e.png")
 
     # Log the trained model
-    torch.save(model.state_dict(), f"./SSF-{hidden_size}-hidden-{data_dim}-input-{num_layers}-layer.pth")
+    torch.save(model.state_dict(), f"./models/SSF-{hidden_size}-hidden-{data_dim}-input-{num_layers}-layer.pth")
     return model
 
 
@@ -278,7 +278,7 @@ def load_model(data_dim:int=526,
                 hidden_dim=hidden_dim,
                 num_layers=num_layers,
                 )
-    model.load_state_dict(torch.load(f"./SSF-{hidden_dim}-hidden-{data_dim}-input-{num_layers}-layer.pth", map_location=device))
+    model.load_state_dict(torch.load(f"./models/SSF-{hidden_dim}-hidden-{data_dim}-input-{num_layers}-layer.pth", map_location=device))
     print(f"SSF model with input_dim={data_dim}, hidden_dim={hidden_dim}, num_layers={num_layers} has been loaded.")
     return model
 
