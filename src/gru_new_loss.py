@@ -165,6 +165,14 @@ def get_data(verbose=True):
     return X_train, y_train, X_test, y_test
 
 
+def new_loss(y_pred:torch.Tensor, y_batch:torch.Tensor, mu:torch.Tensor, std:torch.Tensor) -> torch.Tensor:
+    '''
+    Alternative loss.
+    Considers errors on spikes more important and error on non-spikes less important.
+    '''
+    return (torch.abs(y_pred-y_batch)*((torch.abs(y_batch-mu)/std)+(torch.abs(y_pred-mu)/(std*2)))).sum()/(y_pred.size(0)*y_pred.size(1)*y_pred.size(2))
+
+
 def train_model(X_train:torch.Tensor,
                 y_train:torch.Tensor,
                 X_val:torch.Tensor,
@@ -226,12 +234,15 @@ def train_model(X_train:torch.Tensor,
     print("Begin Training")
     loss_history = []
     start_time = time.time()
+    std = TRAINING_TARGETS.std()
+    mu = TRAINING_TARGETS.mean()
     for epoch in range(n_epochs):
         # Training step
         model.train()
         for X_batch, y_batch in train_loader:
             y_pred = model(X_batch.to(device=device))
-            loss = loss_fn(y_pred, y_batch.to(device=device))
+            loss = new_loss(y_pred=y_pred, y_batch=y_batch.to(device), mu=mu, std=std)
+            #loss = loss_fn(y_pred, y_batch.to(device=device))
             optimizer.zero_grad()
             loss.backward()
             optimizer.step()
@@ -241,7 +252,8 @@ def train_model(X_train:torch.Tensor,
             model.eval()
             with torch.no_grad():
                 y_pred = model(TRAINING_SET)
-                train_loss = torch.sqrt(loss_fn(y_pred, TRAINING_TARGETS))
+                train_loss = new_loss(y_pred=y_pred, y_batch=TRAINING_TARGETS, mu=mu, std=std)
+                #train_loss = torch.sqrt(loss_fn(y_pred, TRAINING_TARGETS))
                 y_pred = model(VALIDATION_SET)
                 val_loss = torch.sqrt(loss_fn(y_pred, VALIDATION_TARGETS))
                 if plot_loss:
@@ -297,7 +309,8 @@ if __name__ == '__main__':
                             y_train=y_train,
                             X_val=X_test,
                             y_val=y_test,
-                            val_frequency=50
+                            val_frequency=hparams.val_frequency,
+                            plot_loss=True
                             )
         del X_train, y_train, X_test, y_test 
     

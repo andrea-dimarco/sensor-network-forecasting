@@ -1,17 +1,10 @@
 
-- Train with clusters
-    - Compara training di sensori singoli contro Training con cluster
-    - Metrica per comparare i modelli
-        - val_loss
-
-- Modella la loss della rete per prevedere solo le spike
-    - spike := valore che si discosta dal valore medio/std di una certa percentuale
-    - non importano le predizioni sui valori piccoli
-    - vogliamo predirre solo le spike
-    - tutto quello sotto la deviazione standatd non ci interessa
-
 - Fare la rete più piccola
+    - RNN con più layer
+    - trova hidden dim per GRU --> 4*input_dim
+    - trova num layers per GRU e RNN --> 1 o 2
     - Cerca di restare sulla decina/centinaio di parametri per sensore
+
     
 - Riprova a prevedere e spike sul SINGOLO sensore
     - Prova a vedere se la stessa rete funzioni su ogni sensore 
@@ -19,13 +12,16 @@
         - addestrare la rete sulle parti iniziali di ogni sensore
     - Prova se la rete di un sensore funziona sugli altri sensori dello stessoo cluster
 
+
 - Detrending
     - Kalman Filter
     - Average prediction error
     - Anomaly detection
     - To be decided
 
+
 - Scrivere report
+
 
 ## == Completed == ##
 - Dataset Cleanup
@@ -41,4 +37,9 @@
 - Train with all sensors
 - Hyperparameter tuning
 - Clustering
+- Modella la loss della rete per prevedere solo le spike
+    - spike = valore che si discosta dal valore medio/std di una certa percentuale
+    - non importano le predizioni sui valori piccoli
+    - vogliamo predirre solo le spike
+    - tutto quello sotto la deviazione standatd non ci interessa
 

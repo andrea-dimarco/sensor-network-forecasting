@@ -9,8 +9,8 @@ class Config:
     ## Training parameters
     model_type: bool = 'SSF' # . . . . . Which model to use: PSF, SSF or FFSF
     load_model: bool = False #. . . . . . Whether to load the model or train a new one
-    n_epochs: int = 501 #. . . . . . . Number of epochs of training
-    val_frequency: int = 50 #. . . . . . How often to perform a validation step
+    n_epochs: int = 201 #. . . . . . . Number of epochs of training
+    val_frequency: int = 25 #. . . . . . How often to perform a validation step
     seed: int = 22 # . . . . . . . . . . Global Seed
     batch_size: int = 64 #. . . . . . . Amount of samples in each batch
 
@@ -48,9 +48,9 @@ class Config:
 
 
     ## Network parameters
-    hidden_dim: int = 140 #. . . . . . . Dimension of the hidden layers for the lstm
+    hidden_dim: int = 20 #. . . . . . . Dimension of the hidden layers for the lstm
     num_layers: int = 1 #. . . . . . . . Number of layers for the generator
-    lookback: int = 33 #. . . . . . . . Length of the input sequences
+    lookback: int = 50 #. . . . . . . . Length of the input sequences
     privileged_lookback: int = 5 # . . . Length of the privileged lookback
 
 

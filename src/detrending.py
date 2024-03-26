@@ -1,7 +1,7 @@
 import torch
 import utilities as ut
 from hyperparameters import Config
-from basic_training_ssf import SSF
+from ssf_training import SSF
 
 def load_model(data_dim:int=526,
                hidden_dim:int=1500,
