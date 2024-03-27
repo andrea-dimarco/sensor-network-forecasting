@@ -406,6 +406,49 @@ def select_sensors(sensors=[2,992], hparams:Config=Config(), do_validation:bool=
         print(f"Sensors {sensors} data saved in files:\n\t- {train_dataset_path}\n\t- {test_dataset_path}")
 
 
+def select_sensors_diff(sensors=[2,992], hparams:Config=Config(), do_validation:bool=False):
+    '''
+    Saves a csv with only the realizations of the multiple chosen sensors.
+
+    Arguments:
+        - `sensors`: the sensors to isolate, if it's None it will get all the sensors
+        - `do_validation`: if to further split the training set into a validation set
+        - `hparams`: hyperparameters
+    '''
+    dataset_path = "./datasets/sensor_data_multi.csv"
+    train_dataset_path = f"./datasets/{hparams.train_file_name}"
+    val_dataset_path   = f"./datasets/{hparams.val_file_name}"
+    test_dataset_path  = f"./datasets/{hparams.test_file_name}"
+
+    dataset = pd.read_csv("./datasets/sensor_data_cleaned.csv").diff().iloc[1:]
+
+    try:
+        if sensors != None:
+            sensor_list = [str(i) for i in sensors]
+            dataset = dataset[sensor_list]
+    except:
+        raise ValueError
+    dataset.to_csv(dataset_path, index=False, header=False)
+
+    # Train & Test
+    train_test_split(X=np.loadtxt(dataset_path, delimiter=",", dtype=np.float32),
+                     split=hparams.train_test_split,
+                     train_file_name=train_dataset_path,
+                     test_file_name=test_dataset_path    
+                     )
+
+    # Train & Validation
+    if do_validation:
+        train_test_split(X=np.loadtxt(train_dataset_path, delimiter=",", dtype=np.float32),
+                        split=hparams.train_val_split,
+                        train_file_name=train_dataset_path,
+                        test_file_name=val_dataset_path    
+                        )
+        print(f"Sensors {sensors} data saved in files:\n\t- {train_dataset_path}\n\t- {val_dataset_path}\n\t- {test_dataset_path}")
+    else:
+        print(f"Sensors {sensors} data saved in files:\n\t- {train_dataset_path}\n\t- {test_dataset_path}")
+
+
 def corr_heatmap(correlation,
                  save_pic:bool=True,
                  show_pic:bool=True,
@@ -468,13 +511,12 @@ if __name__ == '__main__':
 
     # Check sensor covariance
     df = pd.read_csv("./datasets/sensor_data_cleaned.csv")
-    dataset = df.to_numpy()
     n_sensors = min(hparams.n_sensors, 526)
 
 
     # Check sensor correlation
     correlation = df.iloc[:,:n_sensors].corr()
-    corr_heatmap(correlation)
+    #corr_heatmap(correlation)
     
 
     # Cluster the sensors
@@ -497,7 +539,8 @@ if __name__ == '__main__':
     cluster = min(hparams.cluster_selected, n_clusters)
     for i in range(1,n_clusters+1):
         print(i,":", clusters[i])
-    select_sensors(sensors=clusters[cluster])
+    print("ATTENTION: Using differential dataset.")
+    select_sensors_diff(sensors=clusters[cluster])
 
     # Save funky pictures of the clusters  
     # for i in range(1,n_clusters+1):

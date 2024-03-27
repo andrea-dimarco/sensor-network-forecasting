@@ -170,9 +170,6 @@ def spike_loss_fn(pred:torch.Tensor, target:torch.Tensor, mu:torch.Tensor, std:t
     Alternative loss.
     Considers errors on spikes more important and error on non-spikes less important.
     '''
-    #                   MSE loss                     real spike                 predicted spike                       scale down
-    #return torch.sqrt((((pred-target)**2)*((torch.abs(target-mu)/std)+(torch.abs(pred-mu)/(std*8)))).sum()/(pred.size(0)*pred.size(1)*pred.size(2)))
-    
     #              L1 loss            target is a spike        prediction and target differ                                 scale down
     return (torch.abs(pred-target)*((torch.abs(target-mu)/std)+(torch.abs(pred-target)/torch.sqrt(std)))).sum()/(pred.size(0)*pred.size(1)*pred.size(2))
 
