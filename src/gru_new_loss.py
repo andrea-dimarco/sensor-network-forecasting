@@ -165,16 +165,16 @@ def get_data(verbose=True):
     return X_train, y_train, X_test, y_test
 
 
-def spike_loss_fn(y_pred:torch.Tensor, y_batch:torch.Tensor, mu:torch.Tensor, std:torch.Tensor) -> torch.Tensor:
+def spike_loss_fn(pred:torch.Tensor, target:torch.Tensor, mu:torch.Tensor, std:torch.Tensor) -> torch.Tensor:
     '''
     Alternative loss.
     Considers errors on spikes more important and error on non-spikes less important.
     '''
     #                   MSE loss                     real spike                 predicted spike                       scale down
-    #return torch.sqrt((((y_pred-y_batch)**2)*((torch.abs(y_batch-mu)/std)+(torch.abs(y_pred-mu)/(std*8)))).sum()/(y_pred.size(0)*y_pred.size(1)*y_pred.size(2)))
+    #return torch.sqrt((((pred-target)**2)*((torch.abs(target-mu)/std)+(torch.abs(pred-mu)/(std*8)))).sum()/(pred.size(0)*pred.size(1)*pred.size(2)))
     
-    #                   L1 loss                      real spike                 predicted spike                       scale down
-    return (torch.abs(y_pred-y_batch)*((torch.abs(y_batch-mu)/std)+(torch.abs(y_pred-mu)/(std*8)))).sum()/(y_pred.size(0)*y_pred.size(1)*y_pred.size(2))
+    #              L1 loss            target is a spike        prediction and target differ                                 scale down
+    return (torch.abs(pred-target)*((torch.abs(target-mu)/std)+(torch.abs(pred-target)/torch.sqrt(std)))).sum()/(pred.size(0)*pred.size(1)*pred.size(2))
 
 
 def train_model(X_train:torch.Tensor,
@@ -240,7 +240,7 @@ def train_model(X_train:torch.Tensor,
         model.train()
         for X_batch, y_batch in train_loader:
             y_pred = model(X_batch.to(device=device))
-            loss = spike_loss_fn(y_pred=y_pred, y_batch=y_batch.to(device), mu=mu, std=std)
+            loss = spike_loss_fn(pred=y_pred, target=y_batch.to(device), mu=mu, std=std)
             #loss = loss_fn(y_pred, y_batch.to(device=device))
             optimizer.zero_grad()
             loss.backward()
@@ -251,10 +251,10 @@ def train_model(X_train:torch.Tensor,
             model.eval()
             with torch.no_grad():
                 y_pred = model(X_train)
-                train_loss = spike_loss_fn(y_pred=y_pred, y_batch=y_train, mu=mu, std=std)
+                train_loss = spike_loss_fn(pred=y_pred, target=y_train, mu=mu, std=std)
                 #train_loss = torch.sqrt(loss_fn(y_pred, y_train))
                 y_pred = model(X_val)
-                val_loss = spike_loss_fn(y_pred=y_pred, y_batch=y_val, mu=mu, std=std)
+                val_loss = spike_loss_fn(pred=y_pred, target=y_val, mu=mu, std=std)
                 #val_loss = torch.sqrt(loss_fn(y_pred, y_val))
                 if plot_loss:
                     loss_history.append(val_loss.item())

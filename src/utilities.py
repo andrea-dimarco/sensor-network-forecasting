@@ -339,10 +339,10 @@ def validate_model(model,
         ax.minorticks_on()
         # Only plot the first dimension
         plt.plot(dataset_train.get_whole_stream()[:horizon_train,0], c='b')
-        plt.plot(synth_plot_train[:horizon_train,0], c='r')
+        plt.plot(synth_plot_train[:horizon_train,0], c='g')
 
         plt.plot(plot_test[dataset_train.n_samples-horizon_test : dataset_train.n_samples+horizon_test,0], c='b')
-        plt.plot(synth_plot_test[dataset_train.n_samples-horizon_test : dataset_train.n_samples+horizon_test,0], c='g')
+        plt.plot(synth_plot_test[dataset_train.n_samples-horizon_test : dataset_train.n_samples+horizon_test,0], c='r')
 
         print("Plot done.")
         plt.savefig(f"img/{model_type}-{hparams.n_epochs}-e-{hparams.hidden_dim}-hs-{hparams.num_layers}-layers-{hparams.seed}-seed.png",dpi=300)
