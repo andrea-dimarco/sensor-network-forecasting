@@ -9,17 +9,17 @@ class Config:
     ## Training parameters
     model_type: bool = 'SSF' # . . . . . Which model to use: PSF, SSF or FFSF
     load_model: bool = False #. . . . . . Whether to load the model or train a new one
-    n_epochs: int = 201 #. . . . . . . Number of epochs of training
-    val_frequency: int = 25 #. . . . . . How often to perform a validation step
-    seed: int = 22 # . . . . . . . . . . Global Seed
-    batch_size: int = 64 #. . . . . . . Amount of samples in each batch
+    n_epochs: int = 15001 #. . . . . . . Number of epochs of training
+    val_frequency: int = 50 #. . . . . . How often to perform a validation step
+    seed: int = 11 # . . . . . . . . . . Global Seed
+    batch_size: int = 128 #. . . . . . . Amount of samples in each batch
 
     lr: float = 0.01 # . . . . . . . . . adam: learning rate
     b1: float = 0.75 # . . . . . . . . . adam: decay of first order momentum of gradient
     b2: float = 0.90 # . . . . . . . . . adam: decay of first order momentum of gradient
 
     decay_start: float = 1.0 # . . . . . Starting decay factor for the schedulers
-    decay_end: float   = 0.95 #. . . . . Ending decay factor for the scheduler
+    decay_end: float   = 0.90 #. . . . . Ending decay factor for the scheduler
     
     patience: int = 10**3 #. . . . . . . Patience for the early stopping callback
     log_images: int =  1 # . . . . . . . Number of images to log
@@ -48,9 +48,9 @@ class Config:
 
 
     ## Network parameters
-    hidden_dim: int = 20 #. . . . . . . Dimension of the hidden layers for the lstm
+    hidden_dim: int = 21 #. . . . . . . Dimension of the hidden layers for the lstm
     num_layers: int = 1 #. . . . . . . . Number of layers for the generator
-    lookback: int = 50 #. . . . . . . . Length of the input sequences
+    lookback: int = 200 #. . . . . . . . Length of the input sequences
     privileged_lookback: int = 5 # . . . Length of the privileged lookback
 
 

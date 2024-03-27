@@ -498,7 +498,8 @@ if __name__ == '__main__':
     for i in range(1,n_clusters+1):
         print(i,":", clusters[i])
     select_sensors(sensors=clusters[cluster])
-        
+
+    # Save funky pictures of the clusters  
     # for i in range(1,n_clusters+1):
     #     new_corr = df[[str(i) for i in clusters[i]]].corr()
     #     corr_heatmap(new_corr, pic_name=f"correlation-cluster-{i}")

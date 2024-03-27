@@ -217,11 +217,6 @@ def train_model(X_train:torch.Tensor,
                                    shuffle=True,
                                    batch_size=batch_size
                                    )
-    # requred for cuda
-    TRAINING_SET = X_train.to(device=device)
-    TRAINING_TARGETS = y_train.to(device=device)
-    VALIDATION_SET = X_val.to(device=device)
-    VALIDATION_TARGETS = y_val.to(device=device)
 
     print("Begin Training")
     loss_history = []
@@ -240,10 +235,10 @@ def train_model(X_train:torch.Tensor,
         if epoch % val_frequency == 0:
             model.eval()
             with torch.no_grad():
-                y_pred = model(TRAINING_SET)
-                train_loss = torch.sqrt(loss_fn(y_pred, TRAINING_TARGETS))
-                y_pred = model(VALIDATION_SET)
-                val_loss = torch.sqrt(loss_fn(y_pred, VALIDATION_TARGETS))
+                y_pred = model(X_train)
+                train_loss = torch.sqrt(loss_fn(y_pred, y_train))
+                y_pred = model(X_val)
+                val_loss = torch.sqrt(loss_fn(y_pred, y_val))
                 if plot_loss:
                     loss_history.append(val_loss.item())
             end_time = time.time()
@@ -286,6 +281,7 @@ def load_model(data_dim:int=526,
 if __name__ == '__main__':
     # setup
     hparams = Config()
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     set_seed(hparams.seed)
 
     if hparams.load_model:
@@ -293,10 +289,10 @@ if __name__ == '__main__':
 
     else:
         X_train, y_train, X_test, y_test = get_data()
-        model = train_model(X_train=X_train,
-                            y_train=y_train,
-                            X_val=X_test,
-                            y_val=y_test
+        model = train_model(X_train=X_train.to(device=device),
+                            y_train=y_train.to(device=device),
+                            X_val=X_test.to(device=device),
+                            y_val=y_test.to(device=device)
                             )
         del X_train, y_train, X_test, y_test 
     

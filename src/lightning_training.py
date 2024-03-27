@@ -90,10 +90,9 @@ def train(datasets_folder="./datasets/", hparams:Config=Config()):
 
 
 ### Testing Area
+# DEPRECATED!!
 if __name__ == '__main__':
     import utilities as ut
     ut.set_seed(Config().seed)
     ut.generate_data()
     train()
-
-

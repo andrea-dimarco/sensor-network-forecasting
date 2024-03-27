@@ -7,12 +7,12 @@ import torch
 import random
 import numpy as np
 import torch.nn as nn
+import utilities as ut
 import torch.optim as optim
 import pytorch_lightning as pl
 import matplotlib.pyplot as plt
 import torch.utils.data as data
 from hyperparameters import Config
-import utilities as ut
 from data_generation.wiener_process import multi_dim_wiener_process
 
 
@@ -165,12 +165,16 @@ def get_data(verbose=True):
     return X_train, y_train, X_test, y_test
 
 
-def new_loss(y_pred:torch.Tensor, y_batch:torch.Tensor, mu:torch.Tensor, std:torch.Tensor) -> torch.Tensor:
+def spike_loss_fn(y_pred:torch.Tensor, y_batch:torch.Tensor, mu:torch.Tensor, std:torch.Tensor) -> torch.Tensor:
     '''
     Alternative loss.
     Considers errors on spikes more important and error on non-spikes less important.
     '''
-    return (torch.abs(y_pred-y_batch)*((torch.abs(y_batch-mu)/std)+(torch.abs(y_pred-mu)/(std*2)))).sum()/(y_pred.size(0)*y_pred.size(1)*y_pred.size(2))
+    #                   MSE loss                     real spike                 predicted spike                       scale down
+    #return torch.sqrt((((y_pred-y_batch)**2)*((torch.abs(y_batch-mu)/std)+(torch.abs(y_pred-mu)/(std*8)))).sum()/(y_pred.size(0)*y_pred.size(1)*y_pred.size(2)))
+    
+    #                   L1 loss                      real spike                 predicted spike                       scale down
+    return (torch.abs(y_pred-y_batch)*((torch.abs(y_batch-mu)/std)+(torch.abs(y_pred-mu)/(std*8)))).sum()/(y_pred.size(0)*y_pred.size(1)*y_pred.size(2))
 
 
 def train_model(X_train:torch.Tensor,
@@ -225,23 +229,18 @@ def train_model(X_train:torch.Tensor,
                                    shuffle=True,
                                    batch_size=batch_size
                                    )
-    # requred for cuda
-    TRAINING_SET = X_train.to(device=device)
-    TRAINING_TARGETS = y_train.to(device=device)
-    VALIDATION_SET = X_val.to(device=device)
-    VALIDATION_TARGETS = y_val.to(device=device)
 
     print("Begin Training")
     loss_history = []
     start_time = time.time()
-    std = TRAINING_TARGETS.std()
-    mu = TRAINING_TARGETS.mean()
+    std = y_train.std()
+    mu = y_train.mean()
     for epoch in range(n_epochs):
         # Training step
         model.train()
         for X_batch, y_batch in train_loader:
             y_pred = model(X_batch.to(device=device))
-            loss = new_loss(y_pred=y_pred, y_batch=y_batch.to(device), mu=mu, std=std)
+            loss = spike_loss_fn(y_pred=y_pred, y_batch=y_batch.to(device), mu=mu, std=std)
             #loss = loss_fn(y_pred, y_batch.to(device=device))
             optimizer.zero_grad()
             loss.backward()
@@ -251,11 +250,12 @@ def train_model(X_train:torch.Tensor,
         if epoch % val_frequency == 0:
             model.eval()
             with torch.no_grad():
-                y_pred = model(TRAINING_SET)
-                train_loss = new_loss(y_pred=y_pred, y_batch=TRAINING_TARGETS, mu=mu, std=std)
-                #train_loss = torch.sqrt(loss_fn(y_pred, TRAINING_TARGETS))
-                y_pred = model(VALIDATION_SET)
-                val_loss = torch.sqrt(loss_fn(y_pred, VALIDATION_TARGETS))
+                y_pred = model(X_train)
+                train_loss = spike_loss_fn(y_pred=y_pred, y_batch=y_train, mu=mu, std=std)
+                #train_loss = torch.sqrt(loss_fn(y_pred, y_train))
+                y_pred = model(X_val)
+                val_loss = spike_loss_fn(y_pred=y_pred, y_batch=y_val, mu=mu, std=std)
+                #val_loss = torch.sqrt(loss_fn(y_pred, y_val))
                 if plot_loss:
                     loss_history.append(val_loss.item())
             end_time = time.time()
@@ -265,7 +265,7 @@ def train_model(X_train:torch.Tensor,
     
     # Save loss plot
     if plot_loss:
-        plt.plot(loss_history, label="val_loss")
+        plt.plot(loss_history, label="validation loss")
         plt.savefig(f"img/loss-{n_epochs}-e.png")
 
     # Log the trained model
@@ -298,17 +298,18 @@ def load_model(data_dim:int=526,
 if __name__ == '__main__':
     # setup
     hparams = Config()
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     set_seed(hparams.seed)
 
-    if False:#hparams.load_model:
+    if hparams.load_model:
         model = load_model()
 
     else:
         X_train, y_train, X_test, y_test = get_data()
-        model = train_model(X_train=X_train,
-                            y_train=y_train,
-                            X_val=X_test,
-                            y_val=y_test,
+        model = train_model(X_train=X_train.to(device=device),
+                            y_train=y_train.to(device=device),
+                            X_val=X_test.to(device=device),
+                            y_val=y_test.to(device=device),
                             val_frequency=hparams.val_frequency,
                             plot_loss=True
                             )

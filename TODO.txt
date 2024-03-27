@@ -1,16 +1,17 @@
+- Confrontare spike_loss con MSE_loss
 
 - Fare la rete più piccola
     - RNN con più layer
-    - trova hidden dim per GRU --> 4*input_dim
-    - trova num layers per GRU e RNN --> 1 o 2
+    - trova hidden dim per GRU --> 4*input_dim (?)
+    - trova num layers per GRU e RNN --> 1 o 2 (?)
     - Cerca di restare sulla decina/centinaio di parametri per sensore
 
     
-- Riprova a prevedere e spike sul SINGOLO sensore
-    - Prova a vedere se la stessa rete funzioni su ogni sensore 
-        - addestrare la rete su un sensore e testarla sugli altri
+- Riprova a prevedere gli spike sul SINGOLO sensore
+    - Prova a vedere se la stessa rete funzioni su ogni sensore <-- non funziona
+        - addestrare la rete su un sensore e testarla sugli altri <-- non funziona
         - addestrare la rete sulle parti iniziali di ogni sensore
-    - Prova se la rete di un sensore funziona sugli altri sensori dello stessoo cluster
+    - Prova se la rete addestrata su un SINGOLO sensore funziona sugli altri dello STESSO CLUSTER
 
 
 - Detrending
