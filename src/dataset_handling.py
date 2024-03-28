@@ -415,6 +415,7 @@ def select_sensors_diff(sensors=[2,992], hparams:Config=Config(), do_validation:
         - `do_validation`: if to further split the training set into a validation set
         - `hparams`: hyperparameters
     '''
+    print("ATTENTION: Using differential dataset.")
     dataset_path = "./datasets/sensor_data_multi.csv"
     train_dataset_path = f"./datasets/{hparams.train_file_name}"
     val_dataset_path   = f"./datasets/{hparams.val_file_name}"
@@ -539,8 +540,7 @@ if __name__ == '__main__':
     cluster = min(hparams.cluster_selected, n_clusters)
     for i in range(1,n_clusters+1):
         print(i,":", clusters[i])
-    print("ATTENTION: Using differential dataset.")
-    select_sensors_diff(sensors=clusters[cluster])
+    select_sensors(sensors=[81])#clusters[cluster])
 
     # Save funky pictures of the clusters  
     # for i in range(1,n_clusters+1):

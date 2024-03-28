@@ -1,3 +1,12 @@
+- Classificatore (SSD)
+    - Training classificatore
+        - Hyperparameter tuning
+        - allena a prevedere una sola dimensione ma sul dataset con le sequenze di tutti i sensori del claster
+    - Testing classificatore con metriche classiche
+        - Confusion matrix (con k label)
+
+- Confrontare i modelli con un modello randomico
+
 - Confrontare spike_loss con MSE_loss
 
 - Fare la rete più piccola
@@ -43,4 +52,5 @@
     - non importano le predizioni sui valori piccoli
     - vogliamo predirre solo le spike
     - tutto quello sotto la deviazione standatd non ci interessa
+- Classificatore discretizzato
 
