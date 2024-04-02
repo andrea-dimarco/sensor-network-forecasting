@@ -9,8 +9,8 @@ class Config:
     ## Training parameters
     model_type: bool = 'SSF' #. . . . . . Which model to use: PSF, SSF or FFSF
     load_model: bool = False #. . . . . . Whether to load the model or train a new one
-    n_epochs: int = 15001 # . . . . . . . Number of epochs of training
-    val_frequency: int = 100 #. . . . . . How often to perform a validation step
+    n_epochs: int = 1 # . . . . . . . Number of epochs of training
+    val_frequency: int = 1 #. . . . . . How often to perform a validation step
     seed: int = 77 #. . . . . . . . . . . Global Seed
     batch_size: int = 128 # . . . . . . . Amount of samples in each batch
 

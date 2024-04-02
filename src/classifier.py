@@ -12,6 +12,10 @@ import torch.optim as optim
 import pytorch_lightning as pl
 import matplotlib.pyplot as plt
 import torch.utils.data as data
+import seaborn as sns
+from sklearn.metrics import confusion_matrix
+from sklearn.metrics import precision_score
+from sklearn.metrics import f1_score
 from hyperparameters import Config
 from data_generation.wiener_process import multi_dim_wiener_process
 
@@ -256,8 +260,6 @@ def train_model(X_train:torch.Tensor,
     print("Begin Training")
     loss_history = []
     start_time = time.time()
-    std = y_train.std()
-    mu = y_train.mean()
     for epoch in range(n_epochs):
         # Training step
         model.train()
@@ -337,44 +339,28 @@ def validate_model(model:SSD,
         y_pred_train = model(X_train) # ( n_samples, lookback, data_dim, discr )
         n_samples_train = y_pred_train.size()[0]
         data_dim = y_pred_train.size()[2]
-        y_pred_refactored_train = torch.zeros((n_samples_train, lookback, data_dim))
-        for sample in range(n_samples_train):
-            for look in range(lookback):
-                for sensor in range(data_dim):
-                    interval = torch.argmax(y_pred_train[sample,look,sensor]).item()-discretization
-                    y_pred_refactored_train[sample,look,sensor] = interval
+        _, y_pred_refactored_train = torch.max(y_pred_train, 3) # ( batch, lookback, discretizaton, pred )
+        y_pred_refactored_train -= discretization
         y_pred_refactored_train = y_pred_refactored_train[:,-1,:]
 
         # refactor training set
-        train_refactored = torch.zeros((n_samples_train, lookback, data_dim))
-        for sample in range(n_samples_train):
-            for look in range(lookback):
-                for sensor in range(data_dim):
-                    interval = torch.argmax(y_train[sample,look,sensor]).item()-discretization
-                    train_refactored[sample,look,sensor] = interval
-        train_refactored = train_refactored[:,-1,:] 
+        _, train_refactored = torch.max(y_train, 3) # ( batch, lookback, discretizaton, pred )
+        train_refactored -= discretization
+        train_refactored = train_refactored[:,-1,:]
         print("Validation on training set done.")
 
         # TESTING PREDICTIONS
         y_pred_test = model(X_test) # ( n_samples, lookback, data_dim, discr )
         n_samples_test = y_pred_test.size()[0]
         data_dim = y_pred_test.size()[2]
-        y_pred_refactored_test = torch.zeros((n_samples_test, lookback, data_dim))
-        for sample in range(n_samples_test):
-            for look in range(lookback):
-                for sensor in range(data_dim):
-                    interval = torch.argmax(y_pred_test[sample,look,sensor]).item()-discretization
-                    y_pred_refactored_test[sample,look,sensor] = interval
+        _, y_pred_refactored_test = torch.max(y_pred_test, 3) # ( batch, lookback, discretizaton, pred )
+        y_pred_refactored_test -= discretization
         y_pred_refactored_test = y_pred_refactored_test[:,-1,:]
 
         # refactor testing set
-        test_refactored = torch.zeros((n_samples_test, lookback, data_dim))
-        for sample in range(n_samples_test):
-            for look in range(lookback):
-                for sensor in range(data_dim):
-                    interval = torch.argmax(y_test[sample,look,sensor]).item()-discretization
-                    test_refactored[sample,look,sensor] = interval
-        test_refactored = test_refactored[:,-1,:] 
+        _, test_refactored = torch.max(y_test, 3) # ( batch, lookback, discretizaton, pred )
+        test_refactored -= discretization
+        test_refactored = test_refactored[:,-1,:]
         print("Validation on test set done.")
 
         fig, ax = plt.subplots()
@@ -413,6 +399,28 @@ def validate_model(model:SSD,
         plt.savefig(f"img/SSD-{Config().n_epochs}-e-{Config().hidden_dim}-hs-{Config().num_layers}-layers-{Config().seed}-seed.png",dpi=300)
         plt.show()
 
+        return (y_pred_refactored_test[:,0], test_refactored[:,0])
+        #return (y_pred_refactored_train, train_refactored)
+    
+def show_confusion_matrix(actual: torch.Tensor,predicted: torch.Tensor):
+    cm = confusion_matrix(actual,predicted,normalize='pred')
+    discretization = Config.discretization
+    labels = [i for i in range(-discretization,discretization+1)]
+    sns.heatmap(cm * 100, 
+                annot=True,
+                fmt='g', 
+                xticklabels=labels,
+                yticklabels=labels)
+    plt.ylabel('Prediction',fontsize=13)
+    plt.xlabel('Actual',fontsize=13)
+    plt.title('Confusion Matrix',fontsize=17)
+
+    plt.savefig(f"img/SSD_confusion_matrix.png")
+    plt.show()
+    f1_val = f1_score(actual,predicted,average=None,labels=labels)
+    precision_val = precision_score(actual,predicted,average=None,labels=labels)
+    print("f1 score: ", f1_val)
+    print("Precision: ", precision_val)
 
 if __name__ == '__main__':
     # setup
@@ -420,11 +428,12 @@ if __name__ == '__main__':
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     set_seed(hparams.seed)
 
-    if hparams.load_model:
-        model = load_model()
+    X_train, y_train, X_test, y_test = get_data()
 
+    if hparams.load_model:
+        model = load_model(data_dim=X_train.size()[2])
+    
     else:
-        X_train, y_train, X_test, y_test = get_data()
         model = train_model(X_train=X_train.to(device=device),
                             y_train=y_train.to(device=device),
                             X_val=X_test.to(device=device),
@@ -434,10 +443,11 @@ if __name__ == '__main__':
                             )
         
     # Validation
-    validate_model(model=model,
+    actual,predicted = validate_model(model=model,
                    X_train=X_train,
                    y_train=y_train,
                    X_test=X_test,
                    y_test=y_test
                    )    
     
+    show_confusion_matrix(actual,predicted)
