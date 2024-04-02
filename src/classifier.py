@@ -1,9 +1,3 @@
-'''
-
-[-2std, -std, 0, +std, +2std]
-'''
-
-
 import warnings
 warnings.filterwarnings("ignore")
 
@@ -236,11 +230,12 @@ def train_model(X_train:torch.Tensor,
     batch_size = hparams.batch_size
     n_epochs = hparams.n_epochs
     num_layers = hparams.num_layers
+    discretization = hparams.discretization
 
     model = SSD(data_dim=input_size,
                 hidden_dim=hidden_size,
                 num_layers=num_layers,
-                discretization=hparams.discretization
+                discretization=discretization
                 ).to(device=device)
     print("Parameters count: ", ut.count_parameters(model))
 
@@ -294,7 +289,7 @@ def train_model(X_train:torch.Tensor,
         plt.savefig(f"img/loss-{n_epochs}-e.png")
 
     # Log the trained model
-    torch.save(model.state_dict(), f"./models/SSD-{hidden_size}-hidden-{data_dim}-input-{num_layers}-layer.pth")
+    torch.save(model.state_dict(), f"./models/SSD-{hidden_size}-hidden-{data_dim}-input-{num_layers}-layer-{discretization}-disc.pth")
     return model
 
 
@@ -317,7 +312,7 @@ def load_model(data_dim:int=526,
                 num_layers=num_layers,
                 discretization=discretization
                 )
-    model.load_state_dict(torch.load(f"./models/SSD-{hidden_dim}-hidden-{data_dim}-input-{num_layers}-layer.pth", map_location=device))
+    model.load_state_dict(torch.load(f"./models/SSD-{hidden_dim}-hidden-{data_dim}-input-{num_layers}-layer-{discretization}-disc.pth", map_location=device))
     print(f"SSD model with input_dim={data_dim}, hidden_dim={hidden_dim}, num_layers={num_layers} has been loaded.")
     return model
 
@@ -333,7 +328,9 @@ def validate_model(model:SSD,
     '''
     Plot funky graph.
     '''
+    print("Begin validation.")
     model.eval()
+    model.cpu()
     discretization = model.discretization
     with torch.no_grad():
         # TRAINING PREDICTIONS
@@ -356,7 +353,7 @@ def validate_model(model:SSD,
                     interval = torch.argmax(y_train[sample,look,sensor]).item()-discretization
                     train_refactored[sample,look,sensor] = interval
         train_refactored = train_refactored[:,-1,:] 
-
+        print("Validation on training set done.")
 
         # TESTING PREDICTIONS
         y_pred_test = model(X_test) # ( n_samples, lookback, data_dim, discr )
@@ -378,6 +375,7 @@ def validate_model(model:SSD,
                     interval = torch.argmax(y_test[sample,look,sensor]).item()-discretization
                     test_refactored[sample,look,sensor] = interval
         test_refactored = test_refactored[:,-1,:] 
+        print("Validation on test set done.")
 
         fig, ax = plt.subplots()
         ax.grid(which = "major", linewidth = 1)

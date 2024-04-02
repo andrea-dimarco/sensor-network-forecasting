@@ -9,13 +9,13 @@ class Config:
     ## Training parameters
     model_type: bool = 'SSF' #. . . . . . Which model to use: PSF, SSF or FFSF
     load_model: bool = False #. . . . . . Whether to load the model or train a new one
-    n_epochs: int = 101 # . . . . . . . Number of epochs of training
-    val_frequency: int = 10 #. . . . . . How often to perform a validation step
-    seed: int = 33 #. . . . . . . . . . . Global Seed
-    batch_size: int = 64 # . . . . . . . Amount of samples in each batch
+    n_epochs: int = 15001 # . . . . . . . Number of epochs of training
+    val_frequency: int = 100 #. . . . . . How often to perform a validation step
+    seed: int = 77 #. . . . . . . . . . . Global Seed
+    batch_size: int = 128 # . . . . . . . Amount of samples in each batch
 
     decay_start: float = 1.00 # . . . . . Starting decay factor for the schedulers
-    decay_end: float   = 0.99#. . . . . Ending decay factor for the scheduler
+    decay_end: float   = 0.05#. . . . . Ending decay factor for the scheduler
 
     lr: float = 0.01 #. . . . . . . . . . adam: learning rate
     b1: float = 0.75 #. . . . . . . . . . adam: decay of first order momentum of gradient
@@ -50,12 +50,12 @@ class Config:
     ## Network parameters
     hidden_dim: int = 5 # . . . . . . . . Dimension of the hidden state
     num_layers: int = 2 # . . . . . . . . Number of layers for the generator
-    lookback: int = 100 # . . . . . . . . Length of the input sequences
+    lookback: int = 250 # . . . . . . . . Length of the input sequences
     privileged_lookback: int = 5 #. . . . Length of the privileged lookback
-    discretization: int = 1 # . . . . . . Number of std intervals to consider
+    discretization: int = 2 # . . . . . . Number of std intervals to consider
 
 
     ## Testing phase
-    plot_horizon: int = 1000 #. . . . . . How many samples to plot when testing
+    plot_horizon: int = 500 #. . . . . . How many samples to plot when testing
     alpha: float = 0.1 #. . . . . . . . . Parameter for the Anomaly Detector
     h: float = 10 # . . . . . . . . . . . Parameter for the Anomaly Detector
