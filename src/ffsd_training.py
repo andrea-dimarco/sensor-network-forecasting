@@ -229,10 +229,7 @@ def train_model(X_train:torch.Tensor,
         - `val_frequency`: after how many epochs to run a validation epoch
     '''
     hparams = Config()
-    try:
-        data_dim = X_train.size()[2]
-    except:
-        data_dim = 1
+    data_dim = int(X_train.size()[1] / lookback)
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     print(f"Using device {device}.")
     input_size = data_dim

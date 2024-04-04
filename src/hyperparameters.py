@@ -49,7 +49,7 @@ class Config:
 
     ## Network parameters
     hidden_dim: int = 5 # . . . . . . . . Dimension of the hidden state
-    num_layers: int = 2 # . . . . . . . . Number of layers for the generator
+    num_layers: int = 1 # . . . . . . . . Number of layers for the generator
     lookback: int = 10 # . . . . . . . . Length of the input sequences
     privileged_lookback: int = 5 #. . . . Length of the privileged lookback
     discretization: int = 2 # . . . . . . Number of std intervals to consider
