@@ -25,7 +25,7 @@ class SSD(nn.Module):
                  data_dim:int,
                  hidden_dim:int,
                  discretization:int,
-                 num_layers:int=1
+                 num_layers:int=2
                  ) -> None:
         '''
         The Single Sensor Forecasting model.
@@ -207,7 +207,7 @@ def train_model(X_train:torch.Tensor,
                 X_val:torch.Tensor,
                 y_val:torch.Tensor,
                 plot_loss:bool=False,
-                loss_fn=nn.CrossEntropyLoss(),
+                loss_fn=nn.MSELoss(),
                 val_frequency:int=100
                 ):
     '''

@@ -1,13 +1,11 @@
-- Classificatore (SSD)
-    - Training classificatore
-        - Hyperparameter tuning
-        - allena a prevedere una sola dimensione ma sul dataset con le sequenze di tutti i sensori del claster
-    - Testing classificatore con metriche classiche
-        - Confusion matrix (con k label)
+- Avversario
+    - fatto con Random Forest (XGBoost) <-- il nostro modello deve essere meglio di questo
+    - fatto con Catena di Markov
+    - confronta con Confusion Matrix
 
-- Confrontare i modelli con un modello randomico
 
-- Confrontare spike_loss con MSE_loss
+- Ottimizza hyperparameters con nevergrad
+
 
 - Fare la rete più piccola
     - RNN con più layer
@@ -15,11 +13,9 @@
     - trova num layers per GRU e RNN --> 1 o 2 (?)
     - Cerca di restare sulla decina/centinaio di parametri per sensore
 
-    
+
 - Riprova a prevedere gli spike sul SINGOLO sensore
-    - Prova a vedere se la stessa rete funzioni su ogni sensore <-- non funziona
-        - addestrare la rete su un sensore e testarla sugli altri <-- non funziona
-        - addestrare la rete sulle parti iniziali di ogni sensore
+    - una rete su ogni sensore <-- non funziona
     - Prova se la rete addestrata su un SINGOLO sensore funziona sugli altri dello STESSO CLUSTER
 
 
@@ -53,4 +49,6 @@
     - vogliamo predirre solo le spike
     - tutto quello sotto la deviazione standatd non ci interessa
 - Classificatore discretizzato
+- Confusion Matrix con più label
+- Feed Forward con Discretizzazione
 
