@@ -4,18 +4,13 @@ warnings.filterwarnings("ignore")
 
 import time
 import torch
-import random
 import numpy as np
 import torch.nn as nn
 import utilities as ut
 import torch.optim as optim
-import pytorch_lightning as pl
 import matplotlib.pyplot as plt
 import torch.utils.data as data
-import seaborn as sns
-from sklearn.metrics import confusion_matrix
-from sklearn.metrics import precision_score
-from sklearn.metrics import f1_score
+import utilities as ut
 from hyperparameters import Config
 from data_generation.wiener_process import multi_dim_wiener_process
 
@@ -56,7 +51,7 @@ class SSD(nn.Module):
         self.softmax = nn.Softmax(dim=3)
         
         # init weights
-        self.fc.apply(init_weights)
+        self.fc.apply(ut.init_weights)
         for layer_p in self.gru._all_weights:
             for p in layer_p:
                 if 'weight' in p:
@@ -79,16 +74,6 @@ class SSD(nn.Module):
         x = self.softmax(x) # ( batch, lookback, data_dim, discretization)
         return x
     
-
-def init_weights(m):
-    '''
-    Initialized the weights of the nn.Sequential block
-    '''
-    if isinstance(m, nn.Linear):
-        nn.init.xavier_uniform_(m.weight)
-        if hasattr(m, "bias") and m.bias is not None:
-            nn.init.zeros_(m.bias)
-
 
 def create_dataset(dataset:np.ndarray,
                    lookback:int,
@@ -132,24 +117,6 @@ def create_dataset(dataset:np.ndarray,
     X = torch.tensor(X).type(torch.float32)
     y = torch.tensor(y).type(torch.float32)
     return X, y
-
-
-def set_seed(seed=0):
-    '''
-    Sets the global seed
-    
-    Arguments:
-        - `seed`: the seed to be set
-    '''
-    np.random.seed(seed)
-    random.seed(seed)
-
-    torch.cuda.manual_seed(seed)
-    torch.manual_seed(seed)
-    torch.backends.cudnn.deterministic = True # Can have performance impact
-    torch.backends.cudnn.benchmark = False
-
-    _ = pl.seed_everything(seed)
 
 
 def get_data(verbose=True):
@@ -405,32 +372,12 @@ def validate_model(model:SSD,
         #return (y_pred_refactored_train, train_refactored)
     
 
-def show_confusion_matrix(actual: torch.Tensor,predicted: torch.Tensor):
-    cm = confusion_matrix(actual,predicted,normalize='pred')
-    discretization = Config.discretization
-    labels = [i for i in range(-discretization,discretization+1)]
-    sns.heatmap(cm * 100, 
-                annot=True,
-                fmt='g', 
-                xticklabels=labels,
-                yticklabels=labels)
-    plt.ylabel('Prediction',fontsize=13)
-    plt.xlabel('Actual',fontsize=13)
-    plt.title('Confusion Matrix',fontsize=17)
-
-    plt.savefig(f"img/SSD_confusion_matrix.png")
-    plt.show()
-    f1_val = f1_score(actual,predicted,average=None,labels=labels)
-    precision_val = precision_score(actual,predicted,average=None,labels=labels)
-    print("f1 score: ", f1_val)
-    print("Precision: ", precision_val)
-
 
 if __name__ == '__main__':
     # setup
     hparams = Config()
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    set_seed(hparams.seed)
+    ut.set_seed(hparams.seed)
 
     X_train, y_train, X_test, y_test = get_data()
 
@@ -447,11 +394,14 @@ if __name__ == '__main__':
                             )
         
     # Validation
-    actual,predicted = validate_model(model=model,
-                   X_train=X_train,
-                   y_train=y_train,
-                   X_test=X_test,
-                   y_test=y_test
-                   )    
+    actual, predicted = validate_model(model=model,
+                                       X_train=X_train,
+                                       y_train=y_train,
+                                       X_test=X_test,
+                                       y_test=y_test
+                                       )    
     
-    show_confusion_matrix(actual,predicted)
+    ut.show_summary_statistics(actual=actual,
+                               predicted=predicted,
+                               model_name='SSD'
+                               )

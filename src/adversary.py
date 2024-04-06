@@ -3,17 +3,8 @@ warnings.filterwarnings("ignore")
 
 
 import torch
-import random
+import utilities as ut
 import numpy as np
-import pytorch_lightning as pl
-import matplotlib.pyplot as plt
-import seaborn as sns
-from sklearn.metrics import confusion_matrix
-from sklearn.metrics import precision_score
-from sklearn.metrics import f1_score
-from sklearn.metrics import recall_score
-from sklearn.metrics import roc_curve
-from sklearn.metrics import roc_auc_score
 from hyperparameters import Config
 from data_generation.wiener_process import multi_dim_wiener_process
 from sklearn.ensemble import GradientBoostingClassifier
@@ -114,60 +105,11 @@ def get_data(verbose=True):
     return X_train, y_train, X_test, y_test
 
 
-def set_seed(seed=0):
-    '''
-    Sets the global seed
-    
-    Arguments:
-        - `seed`: the seed to be set
-    '''
-    np.random.seed(seed)
-    random.seed(seed)
-
-    torch.cuda.manual_seed(seed)
-    torch.manual_seed(seed)
-    torch.backends.cudnn.deterministic = True # Can have performance impact
-    torch.backends.cudnn.benchmark = False
-
-    _ = pl.seed_everything(seed)
-
-
-def show_confusion_matrix(actual:torch.Tensor, 
-                          predicted:torch.Tensor,
-                          model_name:str='model'
-                          ) -> np.ndarray:
-    '''
-    Computes and displays confusion matrix
-    '''
-    cm = confusion_matrix(actual,predicted,normalize='pred')
-    discretization = Config.discretization
-    labels = [i for i in range(-discretization,discretization+1)]
-    sns.heatmap(cm * 100, 
-                annot=True,
-                fmt='g', 
-                xticklabels=labels,
-                yticklabels=labels)
-    plt.ylabel('Prediction',fontsize=13)
-    plt.xlabel('Actual',fontsize=13)
-    plt.title('Confusion Matrix',fontsize=17)
-
-    plt.savefig(f"img/{model_name}_confusion_matrix.png")
-    plt.show()
-
-    f1_val = f1_score(actual,predicted,average=None,labels=labels)
-    precision_val = precision_score(actual, predicted, average=None, labels=labels)
-    recall = recall_score(actual, predicted, average=None, labels=labels)
-    print("Precision: ", precision_val)
-    print("Recall:    ", recall)
-    print("F1 score:  ", f1_val)
-    return cm
-
-
 if __name__ == '__main__':
     # setup
     hparams = Config()
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    set_seed(hparams.seed)
+    ut.set_seed(hparams.seed)
 
     X_train, y_train, X_test, y_test = get_data()
 
@@ -193,7 +135,7 @@ if __name__ == '__main__':
         
     # Validation  
     predicted = clf.predict(X_test)
-    show_confusion_matrix(actual=y_test,
+    ut.show_summary_statistics(actual=y_test,
                           predicted=predicted,
                           model_name='ADV'
                           )

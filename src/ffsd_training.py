@@ -63,8 +63,8 @@ class FFSD(nn.Module):
         self.softmax = nn.Softmax(dim=2)
         
         # init weights
-        self.feed.apply(init_weights)
-        self.fc.apply(init_weights)
+        self.feed.apply(ut.init_weights)
+        self.fc.apply(ut.init_weights)
     
     def forward(self, x:torch.Tensor) -> torch.Tensor:
         '''
@@ -85,16 +85,6 @@ class FFSD(nn.Module):
         x = x.reshape(batch, self.data_dim, self.discretization*2+1)
         x = self.softmax(x)
         return x
-
-
-def init_weights(m):
-    '''
-    Initialized the weights of the nn.Sequential block
-    '''
-    if isinstance(m, nn.Linear):
-        nn.init.xavier_uniform_(m.weight)
-        if hasattr(m, "bias") and m.bias is not None:
-            nn.init.zeros_(m.bias)
 
 
 def create_dataset(dataset:np.ndarray, lookback:int, discretization:int=Config().discretization):
@@ -136,23 +126,6 @@ def create_dataset(dataset:np.ndarray, lookback:int, discretization:int=Config()
     y = torch.tensor(y).type(torch.float32) # ( n_seq, data_dim, discretization )
     return X, y
 
-
-def set_seed(seed=0):
-    '''
-    Sets the global seed
-    
-    Arguments:
-        - `seed`: the seed to be set
-    '''
-    np.random.seed(seed)
-    random.seed(seed)
-
-    torch.cuda.manual_seed(seed)
-    torch.manual_seed(seed)
-    torch.backends.cudnn.deterministic = True # Can have performance impact
-    torch.backends.cudnn.benchmark = False
-
-    _ = pl.seed_everything(seed)
 
 
 def get_data(verbose=True):
@@ -430,7 +403,7 @@ if __name__ == '__main__':
     # setup
     hparams = Config()
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    set_seed(hparams.seed)
+    ut.set_seed(hparams.seed)
 
     X_train, y_train, X_test, y_test = get_data()
 

@@ -3,12 +3,9 @@ warnings.filterwarnings("ignore")
 
 import time
 import torch
-import random
-import numpy as np
 import torch.nn as nn
 import torch.optim as optim
 import dataset_handling as dh
-import pytorch_lightning as pl
 import matplotlib.pyplot as plt
 import torch.utils.data as data
 from hyperparameters import Config
@@ -54,8 +51,8 @@ class FFSF(nn.Module):
                             out_features=data_dim)
         
         # init weights
-        self.feed.apply(init_weights)
-        self.fc.apply(init_weights)
+        self.feed.apply(ut.init_weights)
+        self.fc.apply(ut.init_weights)
     
     def forward(self, x:torch.Tensor, p:torch.Tensor) -> torch.Tensor:
         '''
@@ -76,34 +73,6 @@ class FFSF(nn.Module):
         x = self.fc(x)
         # x   = (batch, data)
         return x
-
-
-def init_weights(m):
-    '''
-    Initialized the weights of the nn.Sequential block
-    '''
-    if isinstance(m, nn.Linear):
-        nn.init.xavier_uniform_(m.weight)
-        if hasattr(m, "bias") and m.bias is not None:
-            nn.init.zeros_(m.bias)
-
-
-def set_seed(seed=0):
-    '''
-    Sets the global seed
-    
-    Arguments:
-        - `seed`: the seed to be set
-    '''
-    np.random.seed(seed)
-    random.seed(seed)
-
-    torch.cuda.manual_seed(seed)
-    torch.manual_seed(seed)
-    torch.backends.cudnn.deterministic = True # Can have performance impact
-    torch.backends.cudnn.benchmark = False
-
-    _ = pl.seed_everything(seed)
 
 
 def train_model(train_file_path="./datasets/training.csv",
@@ -210,7 +179,7 @@ def train_model(train_file_path="./datasets/training.csv",
 
 
 if __name__ == '__main__':
-    set_seed(42)
+    ut.set_seed(42)
     hparams = Config()
     datasets_folder = "./datasets/"
 

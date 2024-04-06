@@ -13,6 +13,13 @@ import matplotlib.pyplot as plt
 from hyperparameters import Config
 from random import uniform, randint
 from sklearn.decomposition import PCA
+import pytorch_lightning as pl
+import matplotlib.pyplot as plt
+import seaborn as sns
+from sklearn.metrics import confusion_matrix
+from sklearn.metrics import precision_score
+from sklearn.metrics import f1_score
+from sklearn.metrics import recall_score
 
     
 
@@ -233,6 +240,16 @@ def count_parameters(model):
     return sum(p.numel() for p in model.parameters() if p.requires_grad)
 
 
+def init_weights(m):
+    '''
+    Initialized the weights of the nn.Sequential block
+    '''
+    if isinstance(m, torch.nn.Linear):
+        torch.nn.init.xavier_uniform_(m.weight)
+        if hasattr(m, "bias") and m.bias is not None:
+            torch.nn.init.zeros_(m.bias)
+
+
 def validate_model(model,
                    train_dataset_path:str,
                    test_dataset_path:str,
@@ -243,6 +260,7 @@ def validate_model(model,
     '''
     Plots a graph with the predictions on the training set and on the test set.
     '''
+    print("This function is deprecated!")
     with torch.no_grad():
         model.eval()
         model.cpu()
@@ -347,3 +365,34 @@ def validate_model(model,
         print("Plot done.")
         plt.savefig(f"img/{model_type}-{hparams.n_epochs}-e-{hparams.hidden_dim}-hs-{hparams.num_layers}-layers-{hparams.seed}-seed.png",dpi=300)
         plt.show()
+
+
+def show_summary_statistics(actual:torch.Tensor, 
+                          predicted:torch.Tensor,
+                          model_name:str='model'
+                          ) -> np.ndarray:
+    '''
+    Computes and displays confusion matrix
+    '''
+    cm = confusion_matrix(actual,predicted,normalize='pred')
+    discretization = Config.discretization
+    labels = [i for i in range(-discretization,discretization+1)]
+    sns.heatmap(cm * 100, 
+                annot=True,
+                fmt='g', 
+                xticklabels=labels,
+                yticklabels=labels)
+    plt.ylabel('Prediction',fontsize=13)
+    plt.xlabel('Actual',fontsize=13)
+    plt.title('Confusion Matrix',fontsize=17)
+
+    plt.savefig(f"img/{model_name}_confusion_matrix.png")
+    plt.show()
+
+    f1_val = f1_score(actual,predicted,average=None,labels=labels)
+    precision_val = precision_score(actual, predicted, average=None, labels=labels)
+    recall = recall_score(actual, predicted, average=None, labels=labels)
+    print("Precision: ", precision_val)
+    print("Recall:    ", recall)
+    print("F1 score:  ", f1_val)
+    return cm

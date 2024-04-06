@@ -5,6 +5,7 @@ import time
 import torch
 import random
 import numpy as np
+import utilities as ut
 import torch.nn as nn
 import torch.optim as optim
 import pytorch_lightning as pl
@@ -46,7 +47,7 @@ class SSF(nn.Module):
                             )
         
         # init weights
-        self.fc.apply(init_weights)
+        self.fc.apply(ut.init_weights)
         for layer_p in self.lstm._all_weights:
             for p in layer_p:
                 if 'weight' in p:
@@ -66,16 +67,6 @@ class SSF(nn.Module):
         x = self.fc(x)
         return x
     
-
-def init_weights(m):
-    '''
-    Initialized the weights of the nn.Sequential block
-    '''
-    if isinstance(m, nn.Linear):
-        nn.init.xavier_uniform_(m.weight)
-        if hasattr(m, "bias") and m.bias is not None:
-            nn.init.zeros_(m.bias)
-
 
 def create_dataset(dataset, lookback:int):
     """

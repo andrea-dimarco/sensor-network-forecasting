@@ -47,7 +47,7 @@ class RSF(nn.Module):
                             )
         
         # init weights
-        self.fc.apply(init_weights)
+        self.fc.apply(ut.init_weights)
         for layer_p in self.gru._all_weights:
             for p in layer_p:
                 if 'weight' in p:
@@ -68,15 +68,6 @@ class RSF(nn.Module):
         return x
     
 
-def init_weights(m):
-    '''
-    Initialized the weights of the nn.Sequential block
-    '''
-    if isinstance(m, nn.Linear):
-        nn.init.xavier_uniform_(m.weight)
-        if hasattr(m, "bias") and m.bias is not None:
-            nn.init.zeros_(m.bias)
-
 
 def create_dataset(dataset, lookback:int):
     """
@@ -93,24 +84,6 @@ def create_dataset(dataset, lookback:int):
         X.append(feature)
         y.append(target)
     return torch.tensor(X).type(torch.float32), torch.tensor(y).type(torch.float32)
-
-
-def set_seed(seed=0):
-    '''
-    Sets the global seed
-    
-    Arguments:
-        - `seed`: the seed to be set
-    '''
-    np.random.seed(seed)
-    random.seed(seed)
-
-    torch.cuda.manual_seed(seed)
-    torch.manual_seed(seed)
-    torch.backends.cudnn.deterministic = True # Can have performance impact
-    torch.backends.cudnn.benchmark = False
-
-    _ = pl.seed_everything(seed)
 
 
 def get_data(verbose=True):
@@ -286,7 +259,7 @@ def load_model(data_dim:int=526,
 if __name__ == '__main__':
     # setup
     hparams = Config()
-    set_seed(hparams.seed)
+    ut.set_seed(hparams.seed)
 
     if False:#hparams.load_model:
         model = load_model()
