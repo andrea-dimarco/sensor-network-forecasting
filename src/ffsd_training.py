@@ -375,29 +375,6 @@ def validate_model(model:FFSD,
         #return (y_pred_refactored_train, train_refactored)
     
 
-def show_confusion_matrix(actual: torch.Tensor,predicted: torch.Tensor):
-    '''
-    Display confusion matrix.
-    '''
-    cm = confusion_matrix(actual,predicted,normalize='pred')
-    discretization = Config.discretization
-    labels = [i for i in range(-discretization,discretization+1)]
-    sns.heatmap(cm * 100, 
-                annot=True,
-                fmt='g', 
-                xticklabels=labels,
-                yticklabels=labels)
-    plt.ylabel('Prediction',fontsize=13)
-    plt.xlabel('Actual',fontsize=13)
-    plt.title('Confusion Matrix',fontsize=17)
-
-    plt.savefig(f"img/FFSD_confusion_matrix.png")
-    plt.show()
-    f1_val = f1_score(actual,predicted,average=None,labels=labels)
-    precision_val = precision_score(actual,predicted,average=None,labels=labels)
-    print("F1 score:  ", f1_val)
-    print("Precision: ", precision_val)
-
 
 if __name__ == '__main__':
     # setup
@@ -428,4 +405,7 @@ if __name__ == '__main__':
                    y_test=y_test
                    )    
     
-    show_confusion_matrix(actual,predicted)
+    ut.show_summary_statistics(actual=actual,
+                               predicted=predicted,
+                               model_name='FFSD'
+                               )
