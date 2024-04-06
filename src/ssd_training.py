@@ -90,7 +90,9 @@ def init_weights(m):
             nn.init.zeros_(m.bias)
 
 
-def create_dataset(dataset:np.ndarray, lookback:int, discretization:int=Config().discretization):
+def create_dataset(dataset:np.ndarray,
+                   lookback:int,
+                   discretization:int=Config().discretization):
     """
     Transform a time series into a prediction dataset
     
@@ -207,7 +209,7 @@ def train_model(X_train:torch.Tensor,
                 X_val:torch.Tensor,
                 y_val:torch.Tensor,
                 plot_loss:bool=False,
-                loss_fn=nn.MSELoss(),
+                loss_fn=nn.CrossEntropyLoss(),
                 val_frequency:int=100
                 ):
     '''
@@ -402,6 +404,7 @@ def validate_model(model:SSD,
         return (y_pred_refactored_test[:,0], test_refactored[:,0])
         #return (y_pred_refactored_train, train_refactored)
     
+
 def show_confusion_matrix(actual: torch.Tensor,predicted: torch.Tensor):
     cm = confusion_matrix(actual,predicted,normalize='pred')
     discretization = Config.discretization
@@ -421,6 +424,7 @@ def show_confusion_matrix(actual: torch.Tensor,predicted: torch.Tensor):
     precision_val = precision_score(actual,predicted,average=None,labels=labels)
     print("f1 score: ", f1_val)
     print("Precision: ", precision_val)
+
 
 if __name__ == '__main__':
     # setup

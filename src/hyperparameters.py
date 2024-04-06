@@ -8,14 +8,14 @@ class Config:
 
     ## Training parameters
     load_model: bool = False #. . . . . . Whether to load the model or train a new one
-    n_epochs: int = 100 # . . . . . . . Number of epochs of training
-    val_frequency: int = 10 #. . . . . . How often to perform a validation step
-    seed: int = 66 #. . . . . . . . . . . Global Seed
+    n_epochs: int = 101 # . . . . . . . Number of epochs of training
+    val_frequency: int = 50 #. . . . . . How often to perform a validation step
+    seed: int = 33 #. . . . . . . . . . . Global Seed
     batch_size: int = 128 # . . . . . . . Amount of samples in each batch
     model_type: bool = 'SSF' #. . . . . . Deprecated: Which model to use: PSF, SSF or FFSF 
 
     decay_start: float = 1.00 # . . . . . Starting decay factor for the schedulers
-    decay_end: float   = 0.99 #. . . . . Ending decay factor for the scheduler
+    decay_end: float   = 0.70 #. . . . . Ending decay factor for the scheduler
 
     lr: float = 0.01 #. . . . . . . . . . adam: learning rate
     b1: float = 0.75 #. . . . . . . . . . adam: decay of first order momentum of gradient
@@ -49,7 +49,7 @@ class Config:
 
     ## Network parameters
     hidden_dim: int = 5 # . . . . . . . . Dimension of the hidden state
-    num_layers: int = 1 # . . . . . . . . Number of layers for the generator
+    num_layers: int = 2 # . . . . . . . . Number of layers for the generator
     lookback: int = 10 # . . . . . . . . Length of the input sequences
     privileged_lookback: int = 5 #. . . . Length of the privileged lookback
     discretization: int = 2 # . . . . . . Number of std intervals to consider
@@ -57,5 +57,6 @@ class Config:
 
     ## Testing phase
     plot_horizon: int = 500 #. . . . . . How many samples to plot when testing
-    alpha: float = 0.1 #. . . . . . . . . Parameter for the Anomaly Detector
-    h: float = 10 # . . . . . . . . . . . Parameter for the Anomaly Detector
+    n_estimators:int = 100 # . . . . . . Number of estimators for Gradient Boost
+    boost_lr:float = 1.0 # . . . . . . . Learning rate for the Gradient Boots
+    max_depth:int = 1 #. . . . . . . . . Max depth for Gradient Boost
