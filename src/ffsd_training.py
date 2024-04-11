@@ -127,7 +127,6 @@ def create_dataset(dataset:np.ndarray, lookback:int, discretization:int=Config()
     return X, y
 
 
-
 def get_data(verbose=True):
     '''
     Gets and returns the datasets as torch.Tensors
@@ -186,7 +185,7 @@ def train_model(X_train:torch.Tensor,
                 y_val:torch.Tensor,
                 lookback:int=Config().lookback,
                 plot_loss:bool=False,
-                loss_fn=nn.MSELoss(),
+                loss_fn=nn.BCEWithLogitsLoss(),
                 val_frequency:int=100
                 ):
     '''
@@ -375,6 +374,63 @@ def validate_model(model:FFSD,
         #return (y_pred_refactored_train, train_refactored)
     
 
+def fix_class_imbalance(X:torch.Tensor,
+                        y:torch.Tensor,
+                        verbose:bool=False,
+                        scaling_factor:int=2
+                        ) -> tuple[torch.Tensor, torch.Tensor]:
+    '''
+    Upsampling of the minority classes
+    '''
+    import pandas as pd
+    if verbose:
+        print("Starting upsampling of minority classes.")
+
+    discretization = int((y.size()[2] - 1)/2)
+    n_sequences = y.size()[0]
+    lookback = X.size()[1]
+    _, labels = torch.max(y_train, 2) # ( batch, lookback, discretization )
+    labels -= discretization
+    labels.squeeze_()
+
+    dataframe = pd.DataFrame(X.reshape(n_sequences, lookback))
+    dataframe['label'] = pd.DataFrame(labels.numpy())
+    value_counts = dataframe['label'].value_counts()
+    label_zero = value_counts[0]
+    if verbose:
+        print("Classes count BEFORE upsampling:", value_counts)
+
+    for i in range(-discretization, discretization+1):
+        if i == 0:
+            continue
+        else:
+            # for every time you need to duplicate the samples
+            minority_class = dataframe[dataframe['label']==(i)]
+            for j in range(max(0, int( (label_zero/value_counts[i])/scaling_factor) )):
+                dataframe = pd.concat([dataframe, minority_class])
+
+    if verbose:
+        print("Classes count AFTER upsampling:", dataframe['label'].value_counts())
+
+    # get the matrixes
+    X_upsampled = torch.from_numpy(dataframe.to_numpy()[:,:-1]).type(torch.float32)
+    n_sequences = X_upsampled.size()[0]
+
+    # format the labels back to their original form
+    y_upsampled = []
+    for _, item in dataframe['label'].items():
+        one_hot_format = [0.0 for i in range(discretization*2+1)]
+        one_hot_format[item+discretization] = 1.0
+        y_upsampled.append(one_hot_format)
+    y_upsampled = torch.Tensor(y_upsampled).type(torch.float32).reshape(-1, 1, discretization*2+1)
+
+    assert(X_upsampled.size()[0] == y_upsampled.size()[0])
+    if verbose:
+        print("Upsampling of minority classes terminated.")
+    return X_upsampled, y_upsampled
+
+
+
 
 if __name__ == '__main__':
     # setup
@@ -388,14 +444,19 @@ if __name__ == '__main__':
         model = load_model(data_dim=X_train.size()[2])
     
     else:
-        model = train_model(X_train=X_train.to(device=device),
-                            y_train=y_train.to(device=device),
+        X_up, y_up = fix_class_imbalance(X=X_train,
+                                         y=y_train,
+                                         verbose=True
+                                         )
+        model = train_model(X_train=X_up.to(device=device),
+                            y_train=y_up.to(device=device),
                             X_val=X_test.to(device=device),
                             y_val=y_test.to(device=device),
                             val_frequency=hparams.val_frequency,
                             lookback=hparams.lookback,
                             plot_loss=True
                             )
+        del X_up, y_up
         
     # Validation
     actual,predicted = validate_model(model=model,

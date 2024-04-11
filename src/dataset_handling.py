@@ -453,7 +453,8 @@ def select_sensors_diff(sensors=[2,992], hparams:Config=Config(), do_validation:
 def corr_heatmap(correlation,
                  save_pic:bool=True,
                  show_pic:bool=True,
-                 pic_name:str="correlation-heatmap"
+                 pic_name:str="correlation-heatmap",
+                 pic_folder:str="./"
                  ) -> None:
     '''
     Saves a picture of the correlation matrix as a heatmap.
@@ -466,7 +467,7 @@ def corr_heatmap(correlation,
                 vmax=1
                 )
     if save_pic:
-        plt.savefig(f"./img/{pic_name}.png",dpi=300)
+        plt.savefig(f"{pic_folder}{pic_name}.png",dpi=300)
     if show_pic:
         plt.show()
 
@@ -540,7 +541,7 @@ if __name__ == '__main__':
     cluster = min(hparams.cluster_selected, n_clusters)
     # for i in range(1,n_clusters+1):
     #     print(i,":", clusters[i])
-    select_sensors(sensors=[81])#clusters[cluster])
+    select_sensors_diff(sensors=[81])#clusters[cluster])
 
     # Save funky pictures of the clusters  
     # for i in range(1,n_clusters+1):

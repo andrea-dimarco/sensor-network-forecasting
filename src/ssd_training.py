@@ -10,7 +10,6 @@ import utilities as ut
 import torch.optim as optim
 import matplotlib.pyplot as plt
 import torch.utils.data as data
-import utilities as ut
 from hyperparameters import Config
 from data_generation.wiener_process import multi_dim_wiener_process
 
@@ -119,7 +118,8 @@ def create_dataset(dataset:np.ndarray,
     return X, y
 
 
-def get_data(verbose=True):
+def get_data(verbose=True
+             ) -> tuple[torch.Tensor,torch.Tensor,torch.Tensor,torch.Tensor]:
     '''
     Gets and returns the datasets as torch.Tensors
     '''
@@ -176,7 +176,7 @@ def train_model(X_train:torch.Tensor,
                 X_val:torch.Tensor,
                 y_val:torch.Tensor,
                 plot_loss:bool=False,
-                loss_fn=nn.CrossEntropyLoss(),
+                loss_fn=nn.BCELoss(),
                 val_frequency:int=100
                 ):
     '''
@@ -370,7 +370,7 @@ def validate_model(model:SSD,
 
         return (y_pred_refactored_test[:,0], test_refactored[:,0])
         #return (y_pred_refactored_train, train_refactored)
-    
+
 
 
 if __name__ == '__main__':
