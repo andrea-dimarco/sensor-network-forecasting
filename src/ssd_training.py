@@ -196,7 +196,7 @@ def train_model(X_train:torch.Tensor,
         data_dim = X_train.size()[2]
     except:
         data_dim = 1
-    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    device = ut.get_device()
     print(f"Using device {device}.")
     input_size = data_dim
     hidden_size = hparams.hidden_dim
@@ -277,7 +277,7 @@ def load_model(data_dim:int=526,
         - `hidden_dim`: hidden dimension of the model
         - `num_layers`: number of concatenated gru networks
     '''
-    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    device = ut.get_device()
     model = SSD(data_dim=data_dim,
                 hidden_dim=hidden_dim,
                 num_layers=num_layers,
@@ -376,7 +376,7 @@ def validate_model(model:SSD,
 if __name__ == '__main__':
     # setup
     hparams = Config()
-    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    device = ut.get_device()
     ut.set_seed(hparams.seed)
 
     X_train, y_train, X_test, y_test = get_data()

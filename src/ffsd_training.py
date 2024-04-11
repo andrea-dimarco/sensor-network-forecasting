@@ -189,7 +189,7 @@ def train_model(X_train:torch.Tensor,
                 val_frequency:int=100
                 ):
     '''
-    Instanciates and trains the model.
+    Instanciate, train and return the model the model.
 
     Arguments:
         - `X_train`: train Tensor [n_sequences, lookback, data_dim]
@@ -202,7 +202,7 @@ def train_model(X_train:torch.Tensor,
     '''
     hparams = Config()
     data_dim = int(X_train.size()[1] / lookback)
-    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    device = ut.get_device()
     print(f"Using device {device}.")
     input_size = data_dim
     hidden_size = hparams.hidden_dim
@@ -284,7 +284,7 @@ def load_model(data_dim:int=526,
         - `hidden_dim`: hidden dimension of the model
         - `num_layers`: number of concatenated gru networks
     '''
-    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    device = ut.get_device()
     model = FFSD(data_dim=data_dim,
                 hidden_dim=hidden_dim,
                 num_layers=num_layers,
@@ -377,7 +377,7 @@ def validate_model(model:FFSD,
 def fix_class_imbalance(X:torch.Tensor,
                         y:torch.Tensor,
                         verbose:bool=False,
-                        scaling_factor:int=2
+                        scaling_factor:float=0.75
                         ) -> tuple[torch.Tensor, torch.Tensor]:
     '''
     Upsampling of the minority classes
@@ -406,7 +406,7 @@ def fix_class_imbalance(X:torch.Tensor,
         else:
             # for every time you need to duplicate the samples
             minority_class = dataframe[dataframe['label']==(i)]
-            for j in range(max(0, int( (label_zero/value_counts[i])/scaling_factor) )):
+            for j in range(max(0, int( (label_zero/value_counts[i])*scaling_factor) )):
                 dataframe = pd.concat([dataframe, minority_class])
 
     if verbose:
@@ -435,7 +435,7 @@ def fix_class_imbalance(X:torch.Tensor,
 if __name__ == '__main__':
     # setup
     hparams = Config()
-    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    device = ut.get_device()
     ut.set_seed(hparams.seed)
 
     X_train, y_train, X_test, y_test = get_data()

@@ -396,3 +396,7 @@ def show_summary_statistics(actual:torch.Tensor,
     print("Recall:    ", recall)
     print("F1 score:  ", f1_val)
     return cm
+
+
+def get_device() -> torch.device:
+    return torch.device("cuda" if torch.cuda.is_available() else "cpu")

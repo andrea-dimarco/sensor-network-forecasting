@@ -8,7 +8,7 @@ class Config:
 
     ## Training parameters
     load_model: bool = False #. . . . . . Whether to load the model or train a new one
-    n_epochs: int = 5001 # . . . . . . . Number of epochs of training
+    n_epochs: int = 7501 # . . . . . . . Number of epochs of training
     val_frequency: int = 100 #. . . . . . How often to perform a validation step
     seed: int = 33 #. . . . . . . . . . . Global Seed
     batch_size: int = 128 # . . . . . . . Amount of samples in each batch
@@ -48,7 +48,7 @@ class Config:
 
 
     ## Network parameters
-    hidden_dim: int = 4 # . . . . . . . . Dimension of the hidden state
+    hidden_dim: int = 7 # . . . . . . . . Dimension of the hidden state
     num_layers: int = 3 # . . . . . . . . Number of layers for the generator
     lookback: int = 10 # . . . . . . . . Length of the input sequences
     privileged_lookback: int = 5 #. . . . Length of the privileged lookback
