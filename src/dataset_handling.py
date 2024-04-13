@@ -494,7 +494,6 @@ def select_sensors_diff_2(sensors=[2,992], hparams:Config=Config(), do_validatio
         print(f"Sensors {sensors} data saved in files:\n\t- {train_dataset_path}\n\t- {test_dataset_path}")
 
 
-
 def corr_heatmap(correlation,
                  save_pic:bool=True,
                  show_pic:bool=True,
@@ -586,7 +585,7 @@ if __name__ == '__main__':
     cluster = min(hparams.cluster_selected, n_clusters)
     # for i in range(1,n_clusters+1):
     #     print(i,":", clusters[i])
-    select_sensors_diff_2(sensors=[81])#clusters[cluster])
+    select_sensors_diff(sensors=[81])#clusters[cluster])
 
     # Save funky pictures of the clusters  
     # for i in range(1,n_clusters+1):
