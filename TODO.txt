@@ -1,29 +1,18 @@
-- Avversario
-    - fatto con Random Forest (XGBoost) <-- il nostro modello deve essere meglio di questo
-    - fatto con Catena di Markov
-    - confronta con Confusion Matrix
-
-
-- Ottimizza hyperparameters con nevergrad
+- Ottimizza parametri con nevergrad
+    - Per il modello
+    - Per l'avversario
 
 
 - Fare la rete più piccola
-    - RNN con più layer
     - trova hidden dim per GRU --> 4*input_dim (?)
-    - trova num layers per GRU e RNN --> 1 o 2 (?)
-    - Cerca di restare sulla decina/centinaio di parametri per sensore
+
+
+- Addestrare GRU con upsampling
 
 
 - Riprova a prevedere gli spike sul SINGOLO sensore
-    - una rete su ogni sensore <-- non funziona
+    - una rete su ogni sensore
     - Prova se la rete addestrata su un SINGOLO sensore funziona sugli altri dello STESSO CLUSTER
-
-
-- Detrending
-    - Kalman Filter
-    - Average prediction error
-    - Anomaly detection
-    - To be decided
 
 
 - Scrivere report
