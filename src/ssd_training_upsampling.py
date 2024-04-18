@@ -449,7 +449,7 @@ if __name__ == '__main__':
                             X_val=X_test.to(device=device),
                             y_val=y_test.to(device=device),
                             val_frequency=hparams.val_frequency,
-                            plot_loss=False
+                            plot_loss=True
                             )
         del X_up, y_up
         
@@ -458,7 +458,8 @@ if __name__ == '__main__':
                                        X_train=X_train,
                                        y_train=y_train,
                                        X_test=X_test,
-                                       y_test=y_test
+                                       y_test=y_test,
+                                       show_plot=True
                                        )    
     
     ut.show_summary_statistics(actual=actual,
