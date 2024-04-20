@@ -8,7 +8,7 @@ class Config:
 
     ## Training parameters
     load_model: bool = False #. . . . . . Whether to load the model or train a new one
-    n_epochs: int = 20 # . . . . . . . Number of epochs of training
+    n_epochs: int = 1000 # . . . . . . . Number of epochs of training
     val_frequency: int = 10 #. . . . . . How often to perform a validation step
     seed: int = 33 #. . . . . . . . . . . Global Seed
     batch_size: int = 256 # . . . . . . . Amount of samples in each batch
@@ -60,4 +60,4 @@ class Config:
     plot_horizon: int = 500 #. . . . . . How many samples to plot when testing
     n_estimators:int = 100 # . . . . . . Number of estimators for Gradient Boost
     boost_lr:float = 1.0 # . . . . . . . Learning rate for the Gradient Boots
-    max_depth:int = 1 #. . . . . . . . . Max depth for Gradient Boost
+    max_depth:int = 10 #. . . . . . . . . Max depth for Gradient Boost
