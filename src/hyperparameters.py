@@ -58,6 +58,6 @@ class Config:
 
     ## Testing phase
     plot_horizon: int = 500 #. . . . . . How many samples to plot when testing
-    n_estimators:int = 100 # . . . . . . Number of estimators for Gradient Boost
+    n_estimators:int = 200 # . . . . . . Number of estimators for Gradient Boost
     boost_lr:float = 1.0 # . . . . . . . Learning rate for the Gradient Boots
-    max_depth:int = 10 #. . . . . . . . . Max depth for Gradient Boost
+    max_depth:int = 5 #. . . . . . . . . Max depth for Gradient Boost
