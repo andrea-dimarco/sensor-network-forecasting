@@ -381,7 +381,7 @@ def initialize_experiment_directory(is_adversary: bool):
     if is_adversary:
         file.write("Adversary Experiment")
         file.write("\n")
-        file.write(f"Max Depth: {Config.n_epochs}")
+        file.write(f"Max Depth: {Config.max_depth}")
         file.write("\n")
         file.write(f"Estimators: {Config.n_estimators}")
         file.write("\n")
