@@ -8,8 +8,8 @@ class Config:
 
     ## Training parameters
     load_model: bool = False #. . . . . . Whether to load the model or train a new one
-    n_epochs: int = 10001 # . . . . . . . Number of epochs of training
-    val_frequency: int = 500 #. . . . . . How often to perform a validation step
+    n_epochs: int = 20 # . . . . . . . Number of epochs of training
+    val_frequency: int = 10 #. . . . . . How often to perform a validation step
     seed: int = 33 #. . . . . . . . . . . Global Seed
     batch_size: int = 256 # . . . . . . . Amount of samples in each batch
     model_type: bool = 'SSF' #. . . . . . Deprecated: Which model to use: PSF, SSF or FFSF 
@@ -45,7 +45,8 @@ class Config:
     train_val_split: float = 0.8 #. . . . Split between training and validating samples
     data_dim: int =  1 #. . . . . . . . . Dimension of one sample
     num_samples: int = 10**4 #. . . . . . Number of samples to generate (if any)
-
+    chosen_sensor: int = 2  # which sensor to select for data creation
+    diff: int = 3 # degree of differentiation
 
     ## Network parameters
     hidden_dim: int = 3 # . . . . . . . . Dimension of the hidden state

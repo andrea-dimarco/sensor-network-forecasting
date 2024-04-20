@@ -610,27 +610,32 @@ if __name__ == '__main__':
     
 
     # Cluster the sensors
-    labels = cluster_sensors(correlation,
-                             threshold=hparams.clustering_threshold,
-                             show_pic=False
-                             )
-    n_clusters = labels.max()
-    print(f"The clusters of the first {n_sensors} sensors are:", n_clusters)
+    # labels = cluster_sensors(correlation,
+    #                          threshold=hparams.clustering_threshold,
+    #                          show_pic=False
+    #                          )
+    # n_clusters = labels.max()
+    # print(f"The clusters of the first {n_sensors} sensors are:", n_clusters)
 
-    clusters = dict() 
-    for sensor_idx in range(len(labels)):
-        cluster = labels[sensor_idx]
-        sensor_id = int(correlation.columns[sensor_idx])
-        if cluster in clusters.keys():
-            clusters[cluster].append(sensor_id)
-        else:
-            clusters[cluster] = [sensor_id]
+    # clusters = dict() 
+    # for sensor_idx in range(len(labels)):
+    #     cluster = labels[sensor_idx]
+    #     sensor_id = int(correlation.columns[sensor_idx])
+    #     if cluster in clusters.keys():
+    #         clusters[cluster].append(sensor_id)
+    #     else:
+    #         clusters[cluster] = [sensor_id]
 
-    cluster = min(hparams.cluster_selected, n_clusters)
+    # cluster = min(hparams.cluster_selected, n_clusters)
     # for i in range(1,n_clusters+1):
     #     print(i,":", clusters[i])
-    select_sensors_diff(sensors=[81])#clusters[cluster])
-
+    diff = Config.diff
+    if diff == 1:
+        select_sensors_diff(sensors=[Config.chosen_sensor])#clusters[cluster])
+    elif diff == 2: 
+        select_sensors_diff_2(sensors=[Config.chosen_sensor])#clusters[cluster])
+    else:
+        select_sensors_diff_3(sensors=[Config.chosen_sensor])#clusters[cluster])
     # Save funky pictures of the clusters  
     # for i in range(1,n_clusters+1):
     #     new_corr = df[[str(i) for i in clusters[i]]].corr()

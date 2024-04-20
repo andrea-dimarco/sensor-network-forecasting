@@ -8,7 +8,7 @@ import numpy as np
 from hyperparameters import Config
 from data_generation.wiener_process import multi_dim_wiener_process
 from sklearn.ensemble import GradientBoostingClassifier
-
+import os
 
 def create_dataset(dataset:np.ndarray,
                    lookback:int,
@@ -111,6 +111,8 @@ if __name__ == '__main__':
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     ut.set_seed(hparams.seed)
 
+    experiment_dir = ut.initialize_experiment_directory(is_adversary=True)
+    
     X_train, y_train, X_test, y_test = get_data()
 
     if (y_train.size()[1] > 1):
@@ -131,11 +133,17 @@ if __name__ == '__main__':
                                      random_state=hparams.seed
                                      ).fit(X_train, y_train)
     
-    print("Gradient Boost score: ", clf.score(X_test, y_test))
-        
+    file = open(os.path.join(experiment_dir, "log.txt"), "a")
+    file.write("Gradient Boost score: " +  str(clf.score(X_test, y_test)))
+    file.write("\n")
+    file.close() 
+    print("Gradient Boost score: " +  str(clf.score(X_test, y_test)))
+
     # Validation  
     predicted = clf.predict(X_test)
-    ut.show_summary_statistics(actual=y_test,
+    ut.show_summary_statistics(experiment_dir= experiment_dir,
+                          actual=y_test,
                           predicted=predicted,
-                          model_name='ADV'
+                          model_name='ADV',
                           )
+    

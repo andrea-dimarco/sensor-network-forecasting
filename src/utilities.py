@@ -20,8 +20,8 @@ from sklearn.metrics import confusion_matrix
 from sklearn.metrics import precision_score
 from sklearn.metrics import f1_score
 from sklearn.metrics import recall_score
-
-    
+import time
+import os    
 
 def plot_process(samples, labels:List[str]|None=None,
                  save_picture=False, show_plot=True,
@@ -251,6 +251,7 @@ def init_weights(m):
 
 
 def validate_model(model,
+                   experiment_dir:str,
                    train_dataset_path:str,
                    test_dataset_path:str,
                    hparams:Config=Config(),
@@ -363,13 +364,48 @@ def validate_model(model,
         plt.plot(synth_plot_test[dataset_train.n_samples-horizon_test : dataset_train.n_samples+horizon_test,0], c='r')
 
         print("Plot done.")
-        plt.savefig(f"img/{model_type}-{hparams.n_epochs}-e-{hparams.hidden_dim}-hs-{hparams.num_layers}-layers-{hparams.seed}-seed.png",dpi=300)
+        plt.savefig(f"{experiment_dir}/{model_type}-{hparams.n_epochs}-e-{hparams.hidden_dim}-hs-{hparams.num_layers}-layers-{hparams.seed}-seed.png",dpi=300)
         plt.show()
 
+#TODO: make function
+def initialize_experiment_directory(is_adversary: bool):
+    # get unique timestamp
+    experiment_id = str(int(time.time()))
+    # create folder for data
+    experiment_type = "SSD" if not is_adversary else "ADV"
+    experiment_dir = os.path.join("img/",  f"exp_{experiment_type}_{experiment_id}_s{Config.chosen_sensor}_d{Config.diff}")
+    os.mkdir(experiment_dir)
+    print(f"Directory created at {experiment_dir}")
+    # add information to log 
+    file = open(os.path.join(experiment_dir, "log.txt"), "a")
+    if is_adversary:
+        file.write("Adversary Experiment")
+        file.write("\n")
+        file.write(f"Max Depth: {Config.n_epochs}")
+        file.write("\n")
+        file.write(f"Estimators: {Config.n_estimators}")
+        file.write("\n")
 
-def show_summary_statistics(actual:torch.Tensor, 
+    else:
+        file.write("SSD Experiment")
+        file.write("\n")
+        file.write(f"Epochs: {Config.n_epochs}")
+        file.write("\n")
+        file.write(f"Hidden Dimension: {Config.hidden_dim}")
+        file.write("\n")
+        file.write(f"Layers: {Config.num_layers}")
+        file.write("\n")
+
+    file.close() 
+
+    return experiment_dir
+
+
+def show_summary_statistics(
+                          experiment_dir: str,
+                          actual:torch.Tensor, 
                           predicted:torch.Tensor,
-                          model_name:str='model'
+                          model_name:str='model',
                           ) -> np.ndarray:
     '''
     Computes and displays confusion matrix
@@ -382,11 +418,14 @@ def show_summary_statistics(actual:torch.Tensor,
                 fmt='g', 
                 xticklabels=labels,
                 yticklabels=labels)
+    
+    log = open(os.path.join(experiment_dir, "log.txt"), "a")
+
     plt.ylabel('Prediction',fontsize=13)
     plt.xlabel('Actual',fontsize=13)
     plt.title('Confusion Matrix',fontsize=17)
 
-    plt.savefig(f"img/{model_name}_confusion_matrix.png")
+    plt.savefig(os.path.join(experiment_dir, "confusion_matrix.png"))
     plt.show()
 
     f1_val = f1_score(actual,predicted,average=None,labels=labels)
@@ -395,6 +434,15 @@ def show_summary_statistics(actual:torch.Tensor,
     print("Precision: ", precision_val)
     print("Recall:    ", recall)
     print("F1 score:  ", f1_val)
+
+    # write statistics to log
+    log.write("Precision: " + str(precision_val))
+    log.write("\n")
+    log.write("Recall:    " + str(recall))
+    log.write("\n")
+    log.write("F1 score:  " +str(f1_val))
+    log.write("\n")
+    log.close()
     return cm
 
 

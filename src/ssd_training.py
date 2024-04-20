@@ -12,7 +12,7 @@ import matplotlib.pyplot as plt
 import torch.utils.data as data
 from hyperparameters import Config
 from data_generation.wiener_process import multi_dim_wiener_process
-
+import os
 
 class SSD(nn.Module):
     def __init__(self,
@@ -211,7 +211,10 @@ def train_model(X_train:torch.Tensor,
                 discretization=discretization
                 ).to(device=device)
     print("Parameters count: ", ut.count_parameters(model))
-
+    file = open(os.path.join(experiment_dir, "log.txt"), "a")
+    file.write("Parameters count: "+ str(ut.count_parameters(model)))
+    file.write("\n")
+    file.close()
     optimizer = optim.Adam(model.parameters(),
                            lr=hparams.lr,
                            betas=(hparams.b1, hparams.b2)
@@ -257,7 +260,7 @@ def train_model(X_train:torch.Tensor,
     # Save loss plot
     if plot_loss:
         plt.plot(loss_history, label="validation loss")
-        plt.savefig(f"img/loss-{n_epochs}-e.png")
+        plt.savefig(f"{experiment_dir}/loss-{n_epochs}-e.png")
 
     # Log the trained model
     torch.save(model.state_dict(), f"./models/SSD-{hidden_size}-hidden-{data_dim}-input-{num_layers}-layer-{discretization}-disc.pth")
@@ -288,7 +291,8 @@ def load_model(data_dim:int=526,
     return model
 
 
-def validate_model(model:SSD,
+def validate_model(experiment_dir:str,
+                   model:SSD,
                    X_train:torch.Tensor,
                    y_train:torch.Tensor,
                    X_test:torch.Tensor,
@@ -365,7 +369,7 @@ def validate_model(model:SSD,
         plt.yticks([i for i in range(-discretization,discretization+1)])
 
         print("Plot done.")
-        plt.savefig(f"img/SSD-{Config().n_epochs}-e-{Config().hidden_dim}-hs-{Config().num_layers}-layers-{Config().seed}-seed.png",dpi=300)
+        plt.savefig(f"{experiment_dir}/SSD-{Config().n_epochs}-e-{Config().hidden_dim}-hs-{Config().num_layers}-layers-{Config().seed}-seed.png",dpi=300)
         plt.show()
 
         return (y_pred_refactored_test[:,0], test_refactored[:,0])
@@ -378,6 +382,7 @@ if __name__ == '__main__':
     hparams = Config()
     device = ut.get_device()
     ut.set_seed(hparams.seed)
+    experiment_dir = ut.initialize_experiment_directory(is_adversary=False)
 
     X_train, y_train, X_test, y_test = get_data()
 
@@ -394,14 +399,16 @@ if __name__ == '__main__':
                             )
         
     # Validation
-    actual, predicted = validate_model(model=model,
+    actual, predicted = validate_model(experiment_dir=experiment_dir,
+                                       model=model,
                                        X_train=X_train,
                                        y_train=y_train,
                                        X_test=X_test,
                                        y_test=y_test
                                        )    
     
-    ut.show_summary_statistics(actual=actual,
+    ut.show_summary_statistics(experiment_dir=experiment_dir,
+                               actual=actual,
                                predicted=predicted,
                                model_name='SSD'
                                )
