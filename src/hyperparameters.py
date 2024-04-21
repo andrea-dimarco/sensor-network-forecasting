@@ -45,7 +45,7 @@ class Config:
     train_val_split: float = 0.8 #. . . . Split between training and validating samples
     data_dim: int =  1 #. . . . . . . . . Dimension of one sample
     num_samples: int = 10**4 #. . . . . . Number of samples to generate (if any)
-    chosen_sensor: int = 2  # which sensor to select for data creation
+    chosen_sensor: int = 8  # which sensor to select for data creation
     diff: int = 3 # degree of differentiation
 
     ## Network parameters
@@ -58,6 +58,6 @@ class Config:
 
     ## Testing phase
     plot_horizon: int = 500 #. . . . . . How many samples to plot when testing
-    n_estimators:int = 200 # . . . . . . Number of estimators for Gradient Boost
+    n_estimators:int = 100 # . . . . . . Number of estimators for Gradient Boost
     boost_lr:float = 1.0 # . . . . . . . Learning rate for the Gradient Boots
-    max_depth:int = 5 #. . . . . . . . . Max depth for Gradient Boost
+    max_depth:int = 2 #. . . . . . . . . Max depth for Gradient Boost

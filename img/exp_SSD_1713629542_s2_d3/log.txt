@@ -1,0 +1,8 @@
+SSD Experiment
+Epochs: 1000
+Hidden Dimension: 3
+Layers: 2
+Parameters count: 146
+Precision: [0.45454545 0.69       0.95673671 0.53913043 0.5       ]
+Recall:    [1.         0.6509434  0.90104773 0.67391304 0.85714286]
+F1 score:  [0.625      0.66990291 0.92805755 0.59903382 0.63157895]
