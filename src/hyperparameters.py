@@ -45,7 +45,7 @@ class Config:
     train_val_split: float = 0.8 #. . . . Split between training and validating samples
     data_dim: int =  1 #. . . . . . . . . Dimension of one sample
     num_samples: int = 10**4 #. . . . . . Number of samples to generate (if any)
-    chosen_sensor: int = 8  # which sensor to select for data creation
+    chosen_sensor: int = 18  # which sensor to select for data creation
     diff: int = 3 # degree of differentiation
 
     ## Network parameters

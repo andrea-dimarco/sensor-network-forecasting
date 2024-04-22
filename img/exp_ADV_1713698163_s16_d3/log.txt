@@ -1,0 +1,7 @@
+Adversary Experiment
+Max Depth: 2
+Estimators: 100
+Gradient Boost score: 0.7365050320219579
+Precision: [0.375      0.39759036 0.8028169  0.3943662  0.        ]
+Recall:    [0.08333333 0.3        0.92394015 0.26923077 0.        ]
+F1 score:  [0.13636364 0.34196891 0.85913043 0.32       0.        ]
