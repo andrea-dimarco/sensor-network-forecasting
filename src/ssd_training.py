@@ -390,6 +390,7 @@ if __name__ == '__main__':
         model = load_model(data_dim=X_train.size()[2])
     
     else:
+        train_start_time = time.time()
         model = train_model(X_train=X_train.to(device=device),
                             y_train=y_train.to(device=device),
                             X_val=X_test.to(device=device),
@@ -397,7 +398,12 @@ if __name__ == '__main__':
                             val_frequency=hparams.val_frequency,
                             plot_loss=True
                             )
-        
+        train_end_time = time.time()
+        train_time = train_end_time - train_start_time
+        log = open(os.path.join(experiment_dir, "log.txt"), "a")
+        log.write("Training time: " + str(train_time))
+        log.write("\n")
+        log.close()
     # Validation
     actual, predicted = validate_model(experiment_dir=experiment_dir,
                                        model=model,

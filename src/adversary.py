@@ -1,7 +1,6 @@
 import warnings
 warnings.filterwarnings("ignore")
 
-
 import torch
 import utilities as ut
 import numpy as np
@@ -9,7 +8,7 @@ from hyperparameters import Config
 from data_generation.wiener_process import multi_dim_wiener_process
 from sklearn.ensemble import GradientBoostingClassifier
 import os
-
+import time
 def create_dataset(dataset:np.ndarray,
                    lookback:int,
                    discretization:int=Config().discretization
@@ -127,19 +126,23 @@ if __name__ == '__main__':
     
     # Fit Tree
     print("Fitting Gradient Boost Adversary.")
+    start_training_time = time.time()
     clf = GradientBoostingClassifier(n_estimators=hparams.n_estimators,
                                      learning_rate=hparams.boost_lr,
                                      max_depth=hparams.max_depth,
                                      random_state=hparams.seed
                                      ).fit(X_train, y_train)
-    
+    end_training_time = time.time()
+    training_time = end_training_time-start_training_time
     file = open(os.path.join(experiment_dir, "log.txt"), "a")
     file.write("Gradient Boost score: " +  str(clf.score(X_test, y_test)))
+    file.write("\n")
+    file.write("Training Time: " + str(training_time) + " seconds")
     file.write("\n")
     file.close() 
     print("Gradient Boost score: " +  str(clf.score(X_test, y_test)))
 
-    # Validation  
+    # Validation
     predicted = clf.predict(X_test)
     ut.show_summary_statistics(experiment_dir= experiment_dir,
                           actual=y_test,

@@ -411,6 +411,7 @@ def show_summary_statistics(
     Computes and displays confusion matrix
     '''
     cm = confusion_matrix(actual,predicted,normalize='pred')
+    
     discretization = Config.discretization
     labels = [i for i in range(-discretization,discretization+1)]
     sns.heatmap(cm * 100, 
@@ -420,7 +421,9 @@ def show_summary_statistics(
                 yticklabels=labels)
     
     log = open(os.path.join(experiment_dir, "log.txt"), "a")
-
+    log.write("Confusion matrix:\n")
+    log.write(str(cm))
+    log.write("\n")
     plt.ylabel('Prediction',fontsize=13)
     plt.xlabel('Actual',fontsize=13)
     plt.title('Confusion Matrix',fontsize=17)
