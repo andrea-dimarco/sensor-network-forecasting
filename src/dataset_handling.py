@@ -494,7 +494,7 @@ def select_sensors_diff_2(sensors=[2,992], hparams:Config=Config(), do_validatio
         print(f"Sensors {sensors} data saved in files:\n\t- {train_dataset_path}\n\t- {test_dataset_path}")
 
 
-def select_sensors_diff_3(sensors=[2,992], hparams:Config=Config(), do_validation:bool=False):
+def select_sensors_diff_3(sensors=[2,992], hparams:Config=Config(), do_validation:bool=False, verbose:bool = False):
     '''
     Saves a csv with only the realizations of the multiple chosen sensors.
 
@@ -503,7 +503,7 @@ def select_sensors_diff_3(sensors=[2,992], hparams:Config=Config(), do_validatio
         - `do_validation`: if to further split the training set into a validation set
         - `hparams`: hyperparameters
     '''
-    print("ATTENTION: Using differential (deg 2) dataset.")
+    if verbose: print("ATTENTION: Using differential (deg 3) dataset.")
     dataset_path = "./datasets/sensor_data_multi.csv"
     train_dataset_path = f"./datasets/{hparams.train_file_name}"
     val_dataset_path   = f"./datasets/{hparams.val_file_name}"
@@ -533,9 +533,9 @@ def select_sensors_diff_3(sensors=[2,992], hparams:Config=Config(), do_validatio
                         train_file_name=train_dataset_path,
                         test_file_name=val_dataset_path    
                         )
-        print(f"Sensors {sensors} data saved in files:\n\t- {train_dataset_path}\n\t- {val_dataset_path}\n\t- {test_dataset_path}")
+        if verbose: print(f"Sensors {sensors} data saved in files:\n\t- {train_dataset_path}\n\t- {val_dataset_path}\n\t- {test_dataset_path}")
     else:
-        print(f"Sensors {sensors} data saved in files:\n\t- {train_dataset_path}\n\t- {test_dataset_path}")
+        if verbose: print(f"Sensors {sensors} data saved in files:\n\t- {train_dataset_path}\n\t- {test_dataset_path}")
 
 
 def corr_heatmap(correlation,

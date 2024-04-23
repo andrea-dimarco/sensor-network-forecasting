@@ -11,11 +11,11 @@ class Config:
     n_epochs: int = 1000 # . . . . . . . Number of epochs of training
     val_frequency: int = 10 #. . . . . . How often to perform a validation step
     seed: int = 33 #. . . . . . . . . . . Global Seed
-    batch_size: int = 256 # . . . . . . . Amount of samples in each batch
+    batch_size: int = 128 # . . . . . . . Amount of samples in each batch
     model_type: bool = 'SSF' #. . . . . . Deprecated: Which model to use: PSF, SSF or FFSF 
 
     decay_start: float = 1.00 # . . . . . Starting decay factor for the schedulers
-    decay_end: float   = 0.01 #. . . . . Ending decay factor for the scheduler
+    decay_end: float   = 0.75 #. . . . . Ending decay factor for the scheduler
 
     lr: float = 0.01 #. . . . . . . . . . adam: learning rate
     b1: float = 0.75 #. . . . . . . . . . adam: decay of first order momentum of gradient
@@ -57,7 +57,7 @@ class Config:
 
 
     ## Testing phase
-    plot_horizon: int = 500 #. . . . . . How many samples to plot when testing
+    plot_horizon: int = 50 #. . . . . . How many samples to plot when testing
     n_estimators:int = 100 # . . . . . . Number of estimators for Gradient Boost
     boost_lr:float = 1.0 # . . . . . . . Learning rate for the Gradient Boots
     max_depth:int = 2 #. . . . . . . . . Max depth for Gradient Boost

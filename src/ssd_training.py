@@ -118,7 +118,7 @@ def create_dataset(dataset:np.ndarray,
     return X, y
 
 
-def get_data(verbose=True
+def get_data(verbose=False
              ) -> tuple[torch.Tensor,torch.Tensor,torch.Tensor,torch.Tensor]:
     '''
     Gets and returns the datasets as torch.Tensors
@@ -177,7 +177,9 @@ def train_model(X_train:torch.Tensor,
                 y_val:torch.Tensor,
                 plot_loss:bool=False,
                 loss_fn=nn.BCELoss(),
-                val_frequency:int=100
+                val_frequency:int=100,
+                experiment_dir: str= "img/",
+                verbose:bool=False
                 ):
     '''
     Instanciates and trains the model.
@@ -197,7 +199,7 @@ def train_model(X_train:torch.Tensor,
     except:
         data_dim = 1
     device = ut.get_device()
-    print(f"Using device {device}.")
+    if verbose: print(f"Using device {device}.")
     input_size = data_dim
     hidden_size = hparams.hidden_dim
     batch_size = hparams.batch_size
@@ -210,11 +212,7 @@ def train_model(X_train:torch.Tensor,
                 num_layers=num_layers,
                 discretization=discretization
                 ).to(device=device)
-    print("Parameters count: ", ut.count_parameters(model))
-    file = open(os.path.join(experiment_dir, "log.txt"), "a")
-    file.write("Parameters count: "+ str(ut.count_parameters(model)))
-    file.write("\n")
-    file.close()
+    if verbose: print("Parameters count: ", ut.count_parameters(model))
     optimizer = optim.Adam(model.parameters(),
                            lr=hparams.lr,
                            betas=(hparams.b1, hparams.b2)
@@ -229,7 +227,7 @@ def train_model(X_train:torch.Tensor,
                                    batch_size=batch_size
                                    )
 
-    print("Begin Training")
+    if verbose: print("Begin Training")
     loss_history = []
     start_time = time.time()
     for epoch in range(n_epochs):
@@ -253,7 +251,7 @@ def train_model(X_train:torch.Tensor,
                 if plot_loss:
                     loss_history.append(val_loss.item())
             end_time = time.time()
-            print("Epoch %d/%d: train_loss=%.4f, val_loss=%.4f, lr=%.4f, elapsed_time=%.2fs" % (epoch, n_epochs, train_loss, val_loss, optimizer.param_groups[0]["lr"], end_time-start_time))
+            if verbose: print("Epoch %d/%d: train_loss=%.4f, val_loss=%.4f, lr=%.4f, elapsed_time=%.2fs" % (epoch, n_epochs, train_loss, val_loss, optimizer.param_groups[0]["lr"], end_time-start_time))
             start_time = time.time()
         lr_scheduler.step()
     
@@ -298,12 +296,14 @@ def validate_model(experiment_dir:str,
                    X_test:torch.Tensor,
                    y_test:torch.Tensor,
                    lookback:int=Config().lookback,
-                   hparams:Config=Config()
+                   hparams:Config=Config(),
+                   show_plot: bool=False,
+                   verbose: bool=False
                    ) -> None:
     '''
     Plot funky graph.
     '''
-    print("Begin validation.")
+    if verbose:print("Begin validation.")
     model.eval()
     model.cpu()
     discretization = model.discretization
@@ -320,7 +320,7 @@ def validate_model(experiment_dir:str,
         _, train_refactored = torch.max(y_train, 3) # ( batch, lookback, discretizaton, pred )
         train_refactored -= discretization
         train_refactored = train_refactored[:,-1,:]
-        print("Validation on training set done.")
+        if verbose: print("Validation on training set done.")
 
         # TESTING PREDICTIONS
         y_pred_test = model(X_test) # ( n_samples, lookback, data_dim, discr )
@@ -334,7 +334,7 @@ def validate_model(experiment_dir:str,
         _, test_refactored = torch.max(y_test, 3) # ( batch, lookback, discretizaton, pred )
         test_refactored -= discretization
         test_refactored = test_refactored[:,-1,:]
-        print("Validation on test set done.")
+        if verbose: print("Validation on test set done.")
 
         fig, ax = plt.subplots()
         ax.grid(which = "major", linewidth = 1)
@@ -359,30 +359,29 @@ def validate_model(experiment_dir:str,
         plot_test_preds = np.zeros((horizon_train+horizon_test, data_dim)) * np.nan
         plot_test_preds[horizon_train:] = y_pred_refactored_test[:horizon_test]
 
-        plt.scatter(y=plot_train_targets[:,0], x=timesteps, c='b')
-        plt.scatter(y=plot_train_preds[:,0], x=timesteps, c='g')
 
-        plt.scatter(y=plot_test_targets[:,0], x=timesteps, c='b')
-        plt.scatter(y=plot_test_preds[:,0], x=timesteps, c='r')
+        if verbose: print("Plot done.")
+        if show_plot:
+            plt.scatter(y=plot_train_targets[:,0], x=timesteps, c='b')
+            plt.scatter(y=plot_train_preds[:,0], x=timesteps, c='g')
 
-        plt.grid(True)
-        plt.yticks([i for i in range(-discretization,discretization+1)])
+            plt.scatter(y=plot_test_targets[:,0], x=timesteps, c='b')
+            plt.scatter(y=plot_test_preds[:,0], x=timesteps, c='r')
 
-        print("Plot done.")
-        plt.savefig(f"{experiment_dir}/SSD-{Config().n_epochs}-e-{Config().hidden_dim}-hs-{Config().num_layers}-layers-{Config().seed}-seed.png",dpi=300)
-        plt.show()
+            plt.grid(True)
+            plt.yticks([i for i in range(-discretization,discretization+1)])
+
+            plt.savefig(f"{experiment_dir}/SSD-{Config().n_epochs}-e-{Config().hidden_dim}-hs-{Config().num_layers}-layers-{Config().seed}-seed.png",dpi=300)
+            plt.show()
 
         return (y_pred_refactored_test[:,0], test_refactored[:,0])
         #return (y_pred_refactored_train, train_refactored)
 
-
-
-if __name__ == '__main__':
+def execute_training(sensor):
     # setup
     hparams = Config()
     device = ut.get_device()
-    ut.set_seed(hparams.seed)
-    experiment_dir = ut.initialize_experiment_directory(is_adversary=False)
+    experiment_dir = ut.initialize_experiment_directory(sensor,is_adversary=False)
 
     X_train, y_train, X_test, y_test = get_data()
 
@@ -396,11 +395,13 @@ if __name__ == '__main__':
                             X_val=X_test.to(device=device),
                             y_val=y_test.to(device=device),
                             val_frequency=hparams.val_frequency,
-                            plot_loss=True
+                            plot_loss=False
                             )
         train_end_time = time.time()
         train_time = train_end_time - train_start_time
         log = open(os.path.join(experiment_dir, "log.txt"), "a")
+        log.write("Parameters count: "+ str(ut.count_parameters(model)))
+        log.write("\n")
         log.write("Training time: " + str(train_time))
         log.write("\n")
         log.close()
@@ -418,3 +419,7 @@ if __name__ == '__main__':
                                predicted=predicted,
                                model_name='SSD'
                                )
+
+
+if __name__ == '__main__':
+    execute_training()

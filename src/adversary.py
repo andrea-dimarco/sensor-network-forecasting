@@ -52,7 +52,7 @@ def create_dataset(dataset:np.ndarray,
     return X, y
 
 
-def get_data(verbose=True):
+def get_data(verbose=False):
     '''
     Gets and returns the datasets as torch.Tensors
     '''
@@ -103,20 +103,17 @@ def get_data(verbose=True):
 
     return X_train, y_train, X_test, y_test
 
-
-if __name__ == '__main__':
+def execute_training(sensor,verbose:bool=False):
     # setup
     hparams = Config()
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    ut.set_seed(hparams.seed)
 
-    experiment_dir = ut.initialize_experiment_directory(is_adversary=True)
+    experiment_dir = ut.initialize_experiment_directory(sensor,is_adversary=True)
     
     X_train, y_train, X_test, y_test = get_data()
 
     if (y_train.size()[1] > 1):
         print("Can only handle one sensor at a time!!")
-        import os
         os._exit(0)
 
     _, y_train = torch.max(y_train, 2) # ( n_seq, data_dim, discretizaton )
@@ -125,7 +122,7 @@ if __name__ == '__main__':
     y_test -= hparams.discretization
     
     # Fit Tree
-    print("Fitting Gradient Boost Adversary.")
+    if verbose: print("Fitting Gradient Boost Adversary.")
     start_training_time = time.time()
     clf = GradientBoostingClassifier(n_estimators=hparams.n_estimators,
                                      learning_rate=hparams.boost_lr,
@@ -140,7 +137,7 @@ if __name__ == '__main__':
     file.write("Training Time: " + str(training_time) + " seconds")
     file.write("\n")
     file.close() 
-    print("Gradient Boost score: " +  str(clf.score(X_test, y_test)))
+    if verbose:print("Gradient Boost score: " +  str(clf.score(X_test, y_test)))
 
     # Validation
     predicted = clf.predict(X_test)
@@ -150,3 +147,7 @@ if __name__ == '__main__':
                           model_name='ADV',
                           )
     
+
+
+if __name__ == '__main__':
+    print(1)

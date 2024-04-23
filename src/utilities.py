@@ -368,14 +368,14 @@ def validate_model(model,
         plt.show()
 
 #TODO: make function
-def initialize_experiment_directory(is_adversary: bool):
+def initialize_experiment_directory(sensor:int,is_adversary: bool, verbose:bool=False):
     # get unique timestamp
     experiment_id = str(int(time.time()))
     # create folder for data
     experiment_type = "SSD" if not is_adversary else "ADV"
-    experiment_dir = os.path.join("img/",  f"exp_{experiment_type}_{experiment_id}_s{Config.chosen_sensor}_d{Config.diff}")
+    experiment_dir = os.path.join("img/",  f"exp_{experiment_type}_{experiment_id}_s{str(sensor)}_d{Config.diff}")
     os.mkdir(experiment_dir)
-    print(f"Directory created at {experiment_dir}")
+    if verbose: print(f"Directory created at {experiment_dir}")
     # add information to log 
     file = open(os.path.join(experiment_dir, "log.txt"), "a")
     if is_adversary:
@@ -406,6 +406,8 @@ def show_summary_statistics(
                           actual:torch.Tensor, 
                           predicted:torch.Tensor,
                           model_name:str='model',
+                          show_plot:bool=False,
+                          verbose:bool=False
                           ) -> np.ndarray:
     '''
     Computes and displays confusion matrix
@@ -414,6 +416,8 @@ def show_summary_statistics(
     
     discretization = Config.discretization
     labels = [i for i in range(-discretization,discretization+1)]
+    plt.clf()
+    plt.close()
     sns.heatmap(cm * 100, 
                 annot=True,
                 fmt='g', 
@@ -429,14 +433,17 @@ def show_summary_statistics(
     plt.title('Confusion Matrix',fontsize=17)
 
     plt.savefig(os.path.join(experiment_dir, "confusion_matrix.png"))
-    plt.show()
+    if show_plot: plt.show()
+    plt.clf()
+    plt.close()
 
     f1_val = f1_score(actual,predicted,average=None,labels=labels)
     precision_val = precision_score(actual, predicted, average=None, labels=labels)
     recall = recall_score(actual, predicted, average=None, labels=labels)
-    print("Precision: ", precision_val)
-    print("Recall:    ", recall)
-    print("F1 score:  ", f1_val)
+    if verbose:
+        print("Precision: ", precision_val)
+        print("Recall:    ", recall)
+        print("F1 score:  ", f1_val)
 
     # write statistics to log
     log.write("Precision: " + str(precision_val))
