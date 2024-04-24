@@ -9,9 +9,9 @@ class Config:
     ## Training parameters
     load_model: bool = False #. . . . . . Whether to load the model or train a new one
     n_epochs: int = 1000 # . . . . . . . Number of epochs of training
-    val_frequency: int = 10 #. . . . . . How often to perform a validation step
+    val_frequency: int = 500 #. . . . . . How often to perform a validation step
     seed: int = 33 #. . . . . . . . . . . Global Seed
-    batch_size: int = 128 # . . . . . . . Amount of samples in each batch
+    batch_size: int = 256 # . . . . . . . Amount of samples in each batch
     model_type: bool = 'SSF' #. . . . . . Deprecated: Which model to use: PSF, SSF or FFSF 
 
     decay_start: float = 1.00 # . . . . . Starting decay factor for the schedulers

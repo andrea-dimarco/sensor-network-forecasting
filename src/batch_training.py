@@ -12,11 +12,11 @@ if __name__ == '__main__':
     df = pd.read_csv("./datasets/sensor_data_cleaned.csv")
     sensors = df.columns
     half_index= len(df.columns) // 2
-    sensor_list = sensors[half_index:]
+    sensor_list = sensors[47:half_index]
     batch_counter = 1
     for sensor in sensor_list:
         
-        print(f"Executing batch element {batch_counter}/{len(sensor_list)}")
+        print(f"Executing sensor {sensor} [{batch_counter}/{len(sensor_list)}]")
 
         # create dataset 
         print("\tBuilding dataset")
