@@ -1,3 +1,0 @@
-Adversary Experiment
-Max Depth: 2
-Estimators: 100

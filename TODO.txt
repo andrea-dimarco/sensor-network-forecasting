@@ -1,21 +1,8 @@
-- Ottimizza parametri con nevergrad
-    - Per il modello
-    - Per l'avversario
-
-
-- Fare la rete più piccola
-    - trova hidden dim per GRU --> 4*input_dim (?)
-
-
-- Addestrare GRU con upsampling
-
-
-- Riprova a prevedere gli spike sul SINGOLO sensore
-    - una rete su ogni sensore
-    - Prova se la rete addestrata su un SINGOLO sensore funziona sugli altri dello STESSO CLUSTER
-
+- Rifare confusion matrix con maggiore risoluzione
 
 - Scrivere report
+    - ADV Sensors Worst/Best = 548/801
+    - SSD Sensors Worst/Best = 781/392
 
 
 ## == Completed == ##
@@ -40,4 +27,10 @@
 - Classificatore discretizzato
 - Confusion Matrix con più label
 - Feed Forward con Discretizzazione
-
+- Ottimizza parametri con nevergrad
+- Fare la rete più piccola
+- Addestrare GRU con upsampling
+- Riprova a prevedere gli spike sul SINGOLO sensore
+- Addestrare tutti i sensori con ADV e SSD
+- Estrarre Average Confusion Matrix
+- Trovare modelli migliori e peggiori
