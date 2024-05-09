@@ -1,9 +1,10 @@
 - Rifare confusion matrix con maggiore risoluzione
 
 - Scrivere report
-    - ADV Sensors Worst/Best = 548/801
-    - SSD Sensors Worst/Best = 781/392
-
+    - Conclusions
+    - add images for gru con spike and without
+    - Future development
+    -tabella finale con parametri
 
 ## == Completed == ##
 - Dataset Cleanup
@@ -34,3 +35,6 @@
 - Addestrare tutti i sensori con ADV e SSD
 - Estrarre Average Confusion Matrix
 - Trovare modelli migliori e peggiori
+- ADV Sensors Worst/Best = 548/801 DONE 
+- SSD Sensors Worst/Best = 781/392 DONE 
+
