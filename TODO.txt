@@ -4,7 +4,7 @@
     - Conclusions
     - add images for gru con spike and without
     - Future development
-    -tabella finale con parametri
+    - tabella finale con parametri
 
 ## == Completed == ##
 - Dataset Cleanup

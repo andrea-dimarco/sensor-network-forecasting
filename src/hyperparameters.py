@@ -8,8 +8,8 @@ class Config:
 
     ## Training parameters
     load_model: bool = False #. . . . . . Whether to load the model or train a new one
-    n_epochs: int = 1000 # . . . . . . . Number of epochs of training
-    val_frequency: int = 500 #. . . . . . How often to perform a validation step
+    n_epochs: int = 5001 # . . . . . . . Number of epochs of training
+    val_frequency: int = 2500 #. . . . . . How often to perform a validation step
     seed: int = 33 #. . . . . . . . . . . Global Seed
     batch_size: int = 256 # . . . . . . . Amount of samples in each batch
     model_type: bool = 'SSF' #. . . . . . Deprecated: Which model to use: PSF, SSF or FFSF 
@@ -45,19 +45,19 @@ class Config:
     train_val_split: float = 0.8 #. . . . Split between training and validating samples
     data_dim: int =  1 #. . . . . . . . . Dimension of one sample
     num_samples: int = 10**4 #. . . . . . Number of samples to generate (if any)
-    chosen_sensor: int = 19  # which sensor to select for data creation
+    chosen_sensor: int = 81  # which sensor to select for data creation
     diff: int = 3 # degree of differentiation
 
     ## Network parameters
-    hidden_dim: int = 3 # . . . . . . . . Dimension of the hidden state
-    num_layers: int = 2 # . . . . . . . . Number of layers for the generator
-    lookback: int = 100 # . . . . . . . . Length of the input sequences
+    hidden_dim: int = 4 # . . . . . . . . Dimension of the hidden state
+    num_layers: int = 3 # . . . . . . . . Number of layers for the generator
+    lookback: int = 50 # . . . . . . . . Length of the input sequences
     privileged_lookback: int = 5 #. . . . Length of the privileged lookback
     discretization: int = 2 # . . . . . . Number of std intervals to consider
 
 
     ## Testing phase
-    plot_horizon: int = 50 #. . . . . . How many samples to plot when testing
+    plot_horizon: int = 1000 #. . . . . . How many samples to plot when testing
     n_estimators:int = 100 # . . . . . . Number of estimators for Gradient Boost
     boost_lr:float = 1.0 # . . . . . . . Learning rate for the Gradient Boots
     max_depth:int = 2 #. . . . . . . . . Max depth for Gradient Boost

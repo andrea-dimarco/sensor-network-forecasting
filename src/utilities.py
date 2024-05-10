@@ -251,12 +251,12 @@ def init_weights(m):
 
 
 def validate_model(model,
-                   experiment_dir:str,
                    train_dataset_path:str,
                    test_dataset_path:str,
                    hparams:Config=Config(),
                    lookback:int=Config().lookback,
-                   model_type:str=Config().model_type
+                   model_type:str=Config().model_type,
+                   experiment_dir:str="./",
                    ) -> None:
     '''
     Plots a graph with the predictions on the training set and on the test set.
@@ -358,16 +358,16 @@ def validate_model(model,
         ax.minorticks_on()
         # Only plot the first dimension
         plt.plot(dataset_train.get_whole_stream()[:horizon_train,0], c='b')
-        plt.plot(synth_plot_train[:horizon_train,0], c='g')
+        plt.plot(synth_plot_train[:horizon_train,0], c='r')
 
         plt.plot(plot_test[dataset_train.n_samples-horizon_test : dataset_train.n_samples+horizon_test,0], c='b')
-        plt.plot(synth_plot_test[dataset_train.n_samples-horizon_test : dataset_train.n_samples+horizon_test,0], c='r')
+        plt.plot(synth_plot_test[dataset_train.n_samples-horizon_test : dataset_train.n_samples+horizon_test,0], c='g')
 
         print("Plot done.")
         plt.savefig(f"{experiment_dir}/{model_type}-{hparams.n_epochs}-e-{hparams.hidden_dim}-hs-{hparams.num_layers}-layers-{hparams.seed}-seed.png",dpi=300)
         plt.show()
 
-#TODO: make function
+
 def initialize_experiment_directory(sensor:int,is_adversary: bool, verbose:bool=False):
     # get unique timestamp
     experiment_id = str(int(time.time()))
@@ -401,11 +401,9 @@ def initialize_experiment_directory(sensor:int,is_adversary: bool, verbose:bool=
     return experiment_dir
 
 
-def show_summary_statistics(
-                          experiment_dir: str,
-                          actual:torch.Tensor, 
+def show_summary_statistics(actual:torch.Tensor, 
                           predicted:torch.Tensor,
-                          model_name:str='model',
+                          experiment_dir:str="./",
                           show_plot:bool=False,
                           verbose:bool=False
                           ) -> np.ndarray:
