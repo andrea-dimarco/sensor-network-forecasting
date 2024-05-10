@@ -404,6 +404,7 @@ def initialize_experiment_directory(sensor:int,is_adversary: bool, verbose:bool=
 def show_summary_statistics(actual:torch.Tensor, 
                           predicted:torch.Tensor,
                           experiment_dir:str="./",
+                          model_name:str="model",
                           show_plot:bool=False,
                           verbose:bool=False
                           ) -> np.ndarray:

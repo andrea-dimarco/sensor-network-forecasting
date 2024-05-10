@@ -630,16 +630,16 @@ if __name__ == '__main__':
     for i in range(1,n_clusters+1):
         print(i,":", clusters[i])
     
-    diff = Config.diff
+    diff = hparams.diff
     if diff == 1:
-        select_sensors_diff(sensors=[Config.chosen_sensor])#clusters[cluster])
+        select_sensors_diff(sensors=[hparams.chosen_sensor])#clusters[cluster])
     elif diff == 2: 
-        select_sensors_diff_2(sensors=[Config.chosen_sensor])#clusters[cluster])
+        select_sensors_diff_2(sensors=[hparams.chosen_sensor])#clusters[cluster])
     elif diff == 3:
-        select_sensors_diff_3(sensors=[Config.chosen_sensor])#clusters[cluster])
+        select_sensors_diff_3(sensors=[hparams.chosen_sensor])#clusters[cluster])
     else:
-        select_sensors(sensors=[81])#clusters[cluster])
-        
+        select_sensors(sensors=[hparams.chosen_sensor])
+
     # Save funky pictures of the clusters  
     # for i in range(1,n_clusters+1):
     #     new_corr = df[[str(i) for i in clusters[i]]].corr()

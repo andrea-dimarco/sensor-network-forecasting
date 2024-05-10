@@ -7,15 +7,15 @@ from dataclasses import dataclass
 class Config:
 
     ## Training parameters
-    load_model: bool = False #. . . . . . Whether to load the model or train a new one
+    load_model: bool = True #. . . . . . Whether to load the model or train a new one
     n_epochs: int = 5001 # . . . . . . . Number of epochs of training
-    val_frequency: int = 2500 #. . . . . . How often to perform a validation step
+    val_frequency: int = 5000 #. . . . . . How often to perform a validation step
     seed: int = 33 #. . . . . . . . . . . Global Seed
     batch_size: int = 256 # . . . . . . . Amount of samples in each batch
     model_type: bool = 'SSF' #. . . . . . Deprecated: Which model to use: PSF, SSF or FFSF 
 
     decay_start: float = 1.00 # . . . . . Starting decay factor for the schedulers
-    decay_end: float   = 0.75 #. . . . . Ending decay factor for the scheduler
+    decay_end: float   = 0.10 #. . . . . Ending decay factor for the scheduler
 
     lr: float = 0.01 #. . . . . . . . . . adam: learning rate
     b1: float = 0.75 #. . . . . . . . . . adam: decay of first order momentum of gradient
@@ -46,12 +46,12 @@ class Config:
     data_dim: int =  1 #. . . . . . . . . Dimension of one sample
     num_samples: int = 10**4 #. . . . . . Number of samples to generate (if any)
     chosen_sensor: int = 81  # which sensor to select for data creation
-    diff: int = 3 # degree of differentiation
+    diff: int = 0 # degree of differentiation
 
     ## Network parameters
-    hidden_dim: int = 4 # . . . . . . . . Dimension of the hidden state
-    num_layers: int = 3 # . . . . . . . . Number of layers for the generator
-    lookback: int = 50 # . . . . . . . . Length of the input sequences
+    hidden_dim: int = 1500 # . . . . . . . . Dimension of the hidden state
+    num_layers: int = 1 # . . . . . . . . Number of layers for the generator
+    lookback: int = 100 # . . . . . . . . Length of the input sequences
     privileged_lookback: int = 5 #. . . . Length of the privileged lookback
     discretization: int = 2 # . . . . . . Number of std intervals to consider
 

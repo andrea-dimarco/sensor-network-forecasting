@@ -195,7 +195,8 @@ if __name__ == '__main__':
     
     # train model
     model = train_model(train_file_path=train_dataset_path,
-                        val_file_path=test_dataset_path
+                        val_file_path=test_dataset_path,
+                        val_frequency=Config.val_frequency
                         )
     
     # plot graph

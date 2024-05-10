@@ -377,11 +377,17 @@ def validate_model(experiment_dir:str,
         return (y_pred_refactored_test[:,0], test_refactored[:,0])
         #return (y_pred_refactored_train, train_refactored)
 
-def execute_training(sensor):
+
+def execute_training(sensor:int=None,
+                     verbose:bool=False
+                     ) -> None:
     # setup
     hparams = Config()
     device = ut.get_device()
-    experiment_dir = ut.initialize_experiment_directory(sensor,is_adversary=False)
+    if sensor:
+        experiment_dir = ut.initialize_experiment_directory(sensor,is_adversary=False)
+    else:
+        experiment_dir = "./"
 
     X_train, y_train, X_test, y_test = get_data()
 
@@ -395,16 +401,18 @@ def execute_training(sensor):
                             X_val=X_test.to(device=device),
                             y_val=y_test.to(device=device),
                             val_frequency=hparams.val_frequency,
-                            plot_loss=False
+                            plot_loss=False,
+                            verbose=verbose
                             )
         train_end_time = time.time()
         train_time = train_end_time - train_start_time
-        log = open(os.path.join(experiment_dir, "log.txt"), "a")
-        log.write("Parameters count: "+ str(ut.count_parameters(model)))
-        log.write("\n")
-        log.write("Training time: " + str(train_time))
-        log.write("\n")
-        log.close()
+        if sensor:
+            log = open(os.path.join(experiment_dir, "log.txt"), "a")
+            log.write("Parameters count: "+ str(ut.count_parameters(model)))
+            log.write("\n")
+            log.write("Training time: " + str(train_time))
+            log.write("\n")
+            log.close()
     # Validation
     actual, predicted = validate_model(experiment_dir=experiment_dir,
                                        model=model,
@@ -422,4 +430,4 @@ def execute_training(sensor):
 
 
 if __name__ == '__main__':
-    execute_training()
+    execute_training(verbose=True)

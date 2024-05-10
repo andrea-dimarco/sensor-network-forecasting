@@ -155,6 +155,26 @@ def get_data(verbose=True):
     return X_train, y_train, X_test, y_test
 
 
+def validation_step(model:SSF,
+                    X_train:torch.Tensor,
+                    y_train:torch.Tensor,
+                    X_val:torch.Tensor,
+                    y_val:torch.Tensor,
+                    loss_fn=nn.MSELoss()
+                    ) -> float:
+    '''
+    Performs one validation step
+    '''
+    model.eval()
+    with torch.no_grad():
+        y_pred = model(X_train)
+        train_loss = torch.sqrt(loss_fn(y_pred, y_train))
+        y_pred = model(X_val)
+        val_loss = torch.sqrt(loss_fn(y_pred, y_val))
+    print("Train_loss=%.4f, val_loss=%.4f" % (train_loss, val_loss))
+    return val_loss
+
+
 def train_model(X_train:torch.Tensor,
                 y_train:torch.Tensor,
                 X_val:torch.Tensor,
@@ -277,13 +297,21 @@ if __name__ == '__main__':
 
     if hparams.load_model:
         model = load_model()
-
+        X_train, y_train, X_test, y_test = get_data()
+        val_loss = validation_step(model=model.to(device=device),
+                                   X_train=X_train.to(device=device),
+                                   y_train=y_train.to(device=device),
+                                   X_val=X_test.to(device=device),
+                                   y_val=y_test.to(device=device)
+                                   )
+        del X_train, y_train, X_test, y_test 
     else:
         X_train, y_train, X_test, y_test = get_data()
         model = train_model(X_train=X_train.to(device=device),
                             y_train=y_train.to(device=device),
                             X_val=X_test.to(device=device),
-                            y_val=y_test.to(device=device)
+                            y_val=y_test.to(device=device),
+                            val_frequency=hparams.val_frequency
                             )
         del X_train, y_train, X_test, y_test 
     
