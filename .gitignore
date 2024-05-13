@@ -2,8 +2,8 @@
 *-model.pth
 wandb/*
 *(2024)
-wien_*.csv
-*_multi.csv
+*.csv
+*.pth
 
 
 # Byte-compiled / optimized / DLL files
